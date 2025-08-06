@@ -1,0 +1,6638 @@
+FIS Trading API - WSE (Warsaw Stock
+Exchange)
+Version 1.9
+April 2020
+
+Revision History
+Version
+#
+
+Date
+
+Author/Editor
+
+Version/Revision Comments
+
+1.0
+
+November
+2016
+
+Sabria
+BENHAMIDA
+
+Creation of a new Manual format
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+1
+
+Version
+#
+
+Date
+
+Author/Editor
+
+Version/Revision Comments
+
+1.1
+
+November
+2016
+
+Sabria
+BENHAMIDA
+
+Order Updates:
+Addition of the following fields:
+619 FIX tag 55
+624 Session Id
+625 Session name IN
+626 Session name OUT
+627 Route name
+635 FIX tag 100
+760 First Exchange Order Id
+764 GMT Stream date
+797 Quantity pending
+845 Client ID
+883 External party
+1014 Previous validity
+1069 Core Message Sending Timestamp 1070 Core Message Receipt Timestamp
+1072 Core Trade Timestamp
+1073 Core Acknowledge Timestamp
+1085 Order server creation date
+1115 Reject reason
+1200 Cumul Reverse Trade Quantity
+1267 AP Client Reference ID
+1358 User ID :
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+2
+
+Version
+#
+
+Date
+
+Author/Editor
+
+Version/Revision Comments
+
+1.2
+
+August
+2017
+
+Sabria
+BENHAMIDA
+
+Market DATA Updates:
+1. Update of the definition of the field MR#6 Last Trade Time: support microsecond
+level granularity/Time Zone UTC (format HHMMSS.ssssss)
+2. Update of the definition of the field MR#100 Last OTC Transaction Time:
+Support microsecond-level granularity, Time Zone UTC (Format
+HHMMSS.ssssss)
+3. Update of the values for the field MR#152 Expression Unit Type
+Trading Updates:
+1. Addition of the new value ‘P’ to the field #17 Client Code Type
+2. Addition of the field #1470 Client Identification Code
+3. Addition of the field #1482 Execution Decision Maker ID
+4. Addition of the field #1488 Execution Decision Maker Type
+5. Addition of the field #1483 Exchange Investment Decision Maker ID
+6. Addition of the field #1489 Investment Decision Maker Type
+7. Addition of the field #1449 Direct Electronic Access
+8. Addition of the field #1481 Waiver Indicator
+9. Addition of the field #1075 AP Message Sending Timestamp
+10. Addition of the field #1076 AP Message Receipt Timestamp
+11. Addition of the fields #1532: Confirmation for value, #1533: Confirmation for
+volume and #1534 Confirmation for Collar with their values.
+12. Updates of the fields: #1077/#1078/#1080: Trade, Acknowledge and Reject
+Timestamps. These fields support microsecond-level granularity, Time Zone
+UTC
+13. Update of the description of the field #13 Exchange Trade number: “this field is
+mapped with WSE UTP “Execution ID”
+
+1.3
+
+September
+2017
+
+Sabria
+BENHAMIDA
+
+Addition of the list of MIFID II generic fields for Trading and Market Data.
+
+1.4
+
+September
+2017
+
+Sabria
+BENHAMIDA
+
+Update the descriptions of the fields #13 and #51.
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+3
+
+Version
+#
+
+Date
+
+Author/Editor
+
+Version/Revision Comments
+
+1.5
+
+October
+2017
+
+Sabria
+BENHAMIDA
+
+Remove the value ‘2’ from the fields #1488 and #1489.
+Update some definition of MIFID II fields.
+Addition of the value ‘4’ Algo to the fields #1494 and #1497.
+
+1.6
+
+October
+2018
+
+Sabria
+BENHAMIDA
+
+Remove the MR”30 Number of order messages and the CRVR#0 Last Previous Price.
+Add the CRVR#142 Liquidity Group with values.
+
+1.7
+
+December
+2018
+
+Sabria
+BENHAMIDA
+
+Addition of the field #352 Trader Mandator Code in Trading section
+
+1.8
+
+June 2019
+
+Sabria
+BENHAMIDA
+
+Update the field #17
+
+1.9
+
+April 2020
+
+Sabria
+BENHAMIDA
+
+This manual is only for Trading.
+
+How is this document organised?
+This document is made up of the following sections:
+• A section to indicates requests which can be used with the SLEV5 WSEUTP. It indicates also, the available markets.
+• A section to explores the message format of the Market Data requests. Just the specific requests are described in this
+document. Requests like 1100, 1102, 2004 or 2008 are detailed in the file « SLE_API_V4 ».
+• A section to describes data used in the message format
+
+TRADING
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+4
+
+Requests and markets available
+Available Requests
+The available requests for WSE are:
+
+Client -> SLE
+
+Number
+
+Description
+
+1100
+
+Connection
+
+1102
+
+Disconnection
+
+2000
+
+Order management
+
+2017
+
+Real time subscription
+
+2018
+
+Real time unsubscription
+
+2004
+
+Order book consultation
+
+2008
+
+Replies book consultation
+
+code
+
+Number
+
+Description
+
+1100
+
+Connection
+
+1102
+
+Disconnection
+
+2019
+
+Real time message
+
+2004
+
+Order book consultation reply
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+5
+
+Client -> SLE
+
+2008
+
+Replies book consultation reply
+
+Available exchanges
+WSE is composed of one exchange:
+
+Number
+
+Name
+
+40
+
+WSE
+
+Available markets
+The available market for WSE is
+
+Number
+
+Name
+
+1
+
+Bonds
+
+2
+
+Cash
+
+3
+
+Options
+
+4
+
+Future
+
+9
+
+OPCVM
+
+16
+
+Growth market (EURNM)
+
+17
+
+Future Indices
+
+20
+
+Warrants
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+6
+
+Requests format
+Order Management (request 2000)
+Supported by API Messenger.
+
+Position
+
+Name
+
+Type
+
+Coding
+
+length
+
+Mandatory (*)
+
+B
+
+User number
+
+NUM
+
+ASCII
+
+5
+
+Y
+
+C
+
+Request category
+
+CHAR
+
+ASCII
+
+1
+
+Y
+
+D1
+
+Command
+
+NUM
+
+ASCII
+
+1
+
+Y
+
+G
+
+Stock code
+
+CHAR
+
+GL
+
+X
+
+Y
+
+Filler
+
+FILLER
+
+FILLER
+
+10
+
+Y
+
+0
+
+Side
+
+NUM
+
+GL
+
+X
+
+Y
+
+1
+
+Quantity
+
+NUM
+
+GL
+
+X
+
+Y
+
+2
+
+Modality
+
+CHAR
+
+GL
+
+X
+
+Y
+
+3
+
+Price
+
+NUM
+
+GL
+
+X
+
+Y
+
+4
+
+Validity
+
+CHAR
+
+GL
+
+X
+
+Y
+
+5
+
+Expiry date
+
+CHAR
+
+GL
+
+X
+
+C
+
+8
+
+Minimum quantity
+
+NUM
+
+GL
+
+X
+
+N
+
+HEADER
+
+BITMAP
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+7
+
+Position
+
+Name
+
+Type
+
+Coding
+
+length
+
+Mandatory (*)
+
+9
+
+Displayed quantity
+
+NUM
+
+GL
+
+X
+
+N
+
+10
+
+Client reference
+
+CHAR
+
+GL
+
+X
+
+N
+
+12
+
+Internal reference
+
+CHAR
+
+GL
+
+X
+
+Y
+
+13
+
+Exchange number
+
+CHAR
+
+GL
+
+X
+
+C
+
+17
+
+Client Code Type
+
+CHAR
+
+GL
+
+X
+
+Y
+
+19
+
+Allocation Code
+
+CHAR
+
+GL
+
+X
+
+N
+
+21
+
+Posting Mode
+
+CHAR
+
+GL
+
+X
+
+N
+
+24
+
+Compensation Mode 1
+
+CHAR
+
+GL
+
+X
+
+N
+
+26
+
+Stop loss price
+
+NUM
+
+GL
+
+X
+
+N
+
+27
+
+Routing reference
+
+CHAR
+
+GL
+
+X
+
+N
+
+81
+
+Memo
+
+CHAR
+
+GL
+
+X
+
+N
+
+82
+
+Trader Order Number
+
+CHAR
+
+GL
+
+X
+
+N
+
+91
+
+Application side
+
+CHAR
+
+GL
+
+X
+
+N
+
+92
+
+Hour date station
+
+CHAR
+
+GL
+
+X
+
+N
+
+106
+
+GLID
+
+NUM
+
+GL
+
+X
+
+Y
+
+117
+
+Exchange Cancel Quantity
+
+CHAR
+
+GL
+
+X
+
+C
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+8
+
+Position
+
+Name
+
+Type
+
+Coding
+
+length
+
+Mandatory (*)
+
+132
+
+Clearing Account 1
+
+CHAR
+
+GL
+
+X
+
+N
+
+147
+
+Floor Trader ID
+
+CHAR
+
+GL
+
+X
+
+N
+
+192
+
+Currency
+
+CHAR
+
+GL
+
+X
+
+N
+
+195
+
+User Command
+
+CHAR
+
+GL
+
+X
+
+C
+
+196
+
+Trigger parameter
+
+CHAR
+
+GL
+
+X
+
+N
+
+204
+
+Trigger position
+
+CHAR
+
+GL
+
+X
+
+N
+
+210
+
+Alert Message Code
+
+CHAR
+
+GL
+
+X
+
+N
+
+241
+
+Work List
+
+CHAR
+
+GL
+
+X
+
+N
+
+245
+
+Work Reference Price
+
+CHAR
+
+GL
+
+X
+
+N
+
+261
+
+Order ID
+
+CHAR
+
+GL
+
+X
+
+C
+
+293
+
+Work Price Gap
+
+CHAR
+
+GL
+
+X
+
+N
+
+294
+
+Work Limit Max Price
+
+NUM
+
+GL
+
+X
+
+N
+
+306
+
+Second Client Code Type
+
+CHAR
+
+GL
+
+X
+
+N
+
+314
+
+Complementary trade type
+
+CHAR
+
+GL
+
+X
+
+N
+
+317
+
+Client free field 1
+
+CHAR
+
+GL
+
+X
+
+N
+
+318
+
+Client free field 2
+
+CHAR
+
+GL
+
+X
+
+N
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+9
+
+Position
+
+Name
+
+Type
+
+Coding
+
+length
+
+Mandatory (*)
+
+352
+
+Trader Mandator code
+
+CHAR
+
+GL
+
+X
+
+N
+
+393
+
+Work Price Gap Type
+
+CHAR
+
+GL
+
+X
+
+N
+
+484
+
+Order Side Qualifier
+
+CHAR
+
+GL
+
+X
+
+N
+
+619
+
+FIX tag 55
+
+CHAR
+
+GL
+
+X
+
+624
+
+Session Id
+
+CHAR
+
+GL
+
+X
+
+625
+
+Session name IN
+
+CHAR
+
+GL
+
+X
+
+626
+
+Session name OUT
+
+CHAR
+
+GL
+
+X
+
+627
+
+Route name
+
+CHAR
+
+GL
+
+X
+
+635
+
+FIX tag 100
+
+CHAR
+
+GL
+
+X
+
+760
+
+First Exchange Order Id
+
+CHAR
+
+GL
+
+X
+
+762
+
+Confirmation
+
+NUM
+
+GL
+
+X
+
+764
+
+GMT Stream date
+
+CHAR
+
+GL
+
+X
+
+797
+
+Quantity pending
+
+CHAR
+
+GL
+
+X
+
+845
+
+Client ID
+
+CHAR
+
+GL
+
+X
+
+883
+
+External party
+
+CHAR
+
+GL
+
+X
+
+1014
+
+Previous validity
+
+CHAR
+
+GL
+
+X
+
+N
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+10
+
+Position
+
+Name
+
+Type
+
+Coding
+
+length
+
+1069
+
+Core Message Sending Timestamp
+
+NUM
+
+GL
+
+X
+
+1070
+
+Core Message Receipt Timestamp
+
+NUM
+
+GL
+
+X
+
+1072
+
+Core Trade Timestamp
+
+NUM
+
+GL
+
+X
+
+1073
+
+Core Acknowledge Timestamp
+
+NUM
+
+GL
+
+X
+
+1075
+
+AP Message Sending Timestamp
+
+NUM
+
+GL
+
+X
+
+1076
+
+AP Message Receipt Timestamp
+
+NUM
+
+GL
+
+X
+
+1085
+
+Order server creation date
+
+NUM
+
+GL
+
+X
+
+1155
+
+Reject reason
+
+NUM
+
+GL
+
+X
+
+1200
+
+Cumul Reverse Trade Quantity
+
+NUM
+
+GL
+
+X
+
+1267
+
+AP Client Reference ID
+
+CHAR
+
+GL
+
+X
+
+1358
+
+User ID
+
+NUM
+
+GL
+
+X
+
+1449
+
+Direct Electronic Access
+
+NUM
+
+GL
+
+X
+
+1470
+
+Client Identification Code
+
+CHAR
+
+GL
+
+X
+
+1481
+
+Waiver Indicator
+
+NUM
+
+GL
+
+X
+
+1482
+
+Execution Decision Maker ID
+
+CHAR
+
+GL
+
+X
+
+1483
+
+Exchange Investment Decision Maker ID
+
+CHAR
+
+GL
+
+X
+
+Mandatory (*)
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+11
+
+Position
+
+Name
+
+Type
+
+Coding
+
+length
+
+1488
+
+Execution Decision Maker Type
+
+NUM
+
+GL
+
+X
+
+1489
+
+Investment Decision Maker Type
+
+NUM
+
+GL
+
+X
+
+1532
+
+Confirmation for value
+
+NUM
+
+GL
+
+X
+
+1533
+
+Confirmation for volume
+
+NUM
+
+GL
+
+X
+
+1534
+
+Confirmation for Collar
+
+NUM
+
+GL
+
+X
+
+Mandatory (*)
+
+(*) Y = Mandatory ; N = Not mandatory ; C = Conditional
+
+Specific Order Types
+Native Peg Orders
+WSE UTP supports native Peg orders.
+To send a Peg order, the following specific fields must be set:
+
+Position
+
+Name
+
+Value
+
+Comment
+
+241
+
+Work List
+
+D
+
+245
+
+Work
+Reference
+Price
+
+B
+(Bid)
+
+This field is checked by the Trading Line Handler upon receipt of a Peg Order because WSE
+authorizes only Pegs based on the same side of BBO.
+
+or
+
+So if the Side of the Peg is Buy and the Work Reference Price is Ask, or if the Side of the Peg
+is Sell and the Work Reference Price is Bid, then the Peg will be rejected GL 025.
+
+A
+(Ask)
+
+293
+
+Work
+Price Gap
+
+0
+
+Must be set to 0 (or not sent) as WSE does not allow gaps with the Reference Price
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+12
+
+Position
+
+Name
+
+Value
+
+Comment
+
+294
+
+Work
+Limit Max
+Price
+
+Price
+
+Indicates the Maximum limit allowed (in case of Buy order) or the Minimum limit allowed (in
+case of Sell order)
+
+393
+
+Work
+Price Gap
+Type
+
+3
+
+Absolute. This is the only accepted value
+
+Note that the Exchange does not send any message when the Price of a Peg order is changed due to change of the first limit.
+Thus, no 2019 will be received by the client in this case.
+
+Native Stop Orders
+WSE UTP supports native Stop orders.
+To send a Stop order, the following specific fields must be set:
+
+Position
+
+Name
+
+Value
+
+Comment
+
+196
+
+Trigger Parameter
+
+S
+
+Stop Order with reference Price = Last Price. This is the only value supported by WSE
+
+26
+
+Stop loss price
+
+Price
+
+Trigger Price
+
+Native Iceberg Orders
+WSE UTP supports native Iceberg orders.
+To send an Iceberg order, the following specific fields must be set:
+
+Position
+
+Name
+
+Value
+
+196
+
+Trigger Parameter
+
+I
+
+9
+
+Displayed quantity
+
+Quantity
+
+Comment
+
+Quantity displayed in the Market Data
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+13
+
+OTC Order Management
+Off Exchange (OTC) orders are either:
+• Dual-sided: both sides are sent at the same time in a single message. FIS Market Data Server API message 2040 should be
+used
+• Single-sided: each side is entered separately. FIS Market Data Server API message 2000 should be used
+The field #16 Order Type will allow distinguishing which OTC type should be sent:
+
+16
+
+Order Type (OTC order)
+
+B
+
+Block
+
+I
+
+BISO
+
+R
+
+Trade Report
+
+The IOI mechanism will be detailed in a later version. Therefore, the mapping of IOI and the field IOIUTPID is not present yet. SingleSided OTC Management (request 2000)
+Supported by API Messenger.
+
+Position
+
+Name
+
+Type
+
+Coding
+
+length
+
+B
+
+User number
+
+NUM
+
+ASCII
+
+5
+
+C
+
+Request category
+
+CHAR
+
+ASCII
+
+1
+
+D1
+
+Command
+
+NUM
+
+ASCII
+
+1
+
+G
+
+Stock code
+
+CHAR
+
+GL
+
+X
+
+Filler
+
+FILLER
+
+FILLER
+
+10
+
+HEADER
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+14
+
+Position
+
+Name
+
+Type
+
+Coding
+
+length
+
+0
+
+Side
+
+NUM
+
+GL
+
+X
+
+1
+
+Quantity
+
+NUM
+
+GL
+
+X
+
+3
+
+Price
+
+NUM
+
+GL
+
+X
+
+10
+
+Client reference
+
+CHAR
+
+GL
+
+X
+
+12
+
+Internal reference
+
+CHAR
+
+GL
+
+X
+
+13
+
+Exchange number
+
+CHAR
+
+GL
+
+X
+
+16
+
+Order type
+
+CHAR
+
+GL
+
+X
+
+17
+
+Client Code Type
+
+CHAR
+
+GL
+
+X
+
+19
+
+Allocation Code
+
+CHAR
+
+GL
+
+X
+
+81
+
+Memo
+
+CHAR
+
+GL
+
+X
+
+91
+
+Application side
+
+CHAR
+
+GL
+
+X
+
+92
+
+Hour date station
+
+CHAR
+
+GL
+
+X
+
+106
+
+GLID
+
+CHAR
+
+GL
+
+X
+
+132
+
+Clearing Account 1
+
+CHAR
+
+GL
+
+X
+
+136
+
+Settlement date
+
+CHAR
+
+GL
+
+X
+
+BITMAP
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+15
+
+Position
+
+Name
+
+Type
+
+Coding
+
+length
+
+147
+
+Floor Trader ID
+
+CHAR
+
+GL
+
+X
+
+192
+
+Currency
+
+CHAR
+
+GL
+
+X
+
+306
+
+Second Client Code Type
+
+CHAR
+
+GL
+
+X
+
+317
+
+Client Free Field 1
+
+CHAR
+
+GL
+
+X
+
+318
+
+Client Free Field 2
+
+CHAR
+
+GL
+
+X
+
+484
+
+Order Side Qualifier (if Side = Sell)
+
+CHAR
+
+GL
+
+X
+
+1234
+
+IOI ID (for answer to IOI)
+
+CHAR
+
+GL
+
+X
+
+Dual-Sided OTC Management (request 2040)
+Not supported by API Messenger.
+
+Name of the column
+
+Value
+
+1
+
+Message Type :
+
+‘X’
+
+X
+
+Default Stockcode for all orders :
+
+5
+
+Number of default data fields coded :
+
+5
+
+Filler
+
+‘
+
+‘
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+16
+
+Name of the column
+
+X
+
+Value
+
+Default data :
+• 1 Quantity
+• 2 Modality
+• 3 Price
+• 4 Validity
+• 91 Application side
+• 92 Hour date station
+• 106 GLID
+• 147 Floor Trader ID
+• 192 Currency
+• 16 Order type
+• 306 Second Client Code Type
+
+3
+
+Number of Orders (N) :
+
+‘002’
+
+5
+
+Length :
+
+5
+
+User Number :
+
+1
+
+Request category :
+
+‘A’
+
+1
+
+Command :
+
+‘0’
+
+X
+
+Stock code :
+
+5
+
+Number of data fields coded :
+
+5
+
+Filler :
+
+‘
+
+‘
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+17
+
+Name of the column
+
+L1,
+
+Value
+
+Data :
+• 0 Side
+
+0 (Buy)
+
+• 1 Quantity
+• 10 Client Reference
+• 13 Exchange number
+• 17 Client Code Type
+• 19 Allocation Code
+• 21 Posting Mode
+• 24 Compensation Mode 1
+• 81 Memo
+• 132 Clearing Account1
+• 317 Client Free Field 1
+• 318 Client Free Field 2
+
+5
+
+Length :
+
+5
+
+User Number :
+
+1
+
+Request category :
+
+‘A’
+
+1
+
+Command :
+
+‘0’
+
+X
+
+Stock code :
+
+5
+
+Number of data fields coded:
+
+5
+
+Filler :
+
+‘
+
+‘
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+18
+
+Name of the column
+
+L2
+
+Value
+
+Data :
+• 0 Side
+
+1 (Sell)
+
+• 1 Quantity
+• 10 Client Reference
+• 13 Exchange number
+• 17 Client Code Type
+• 19 Allocation Code
+• 21 Posting Mode
+• 24 Compensation Mode 1
+• 81 Memo
+• 132 Clearing Account1
+• 317 Client Free Field 1
+• 318 Client Free Field 2
+• 484 Order Side Qualifier
+
+Cross Order Management (request 2040)
+Not supported by API Messenger.
+
+Name of the column
+
+Value
+
+1
+
+Message Type :
+
+‘X’
+
+X
+
+Default Stockcode for all orders :
+
+5
+
+Number of default data fields coded :
+
+5
+
+Filler
+
+‘
+
+‘
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+19
+
+Name of the column
+
+X
+
+Value
+
+Default data :
+• 1 Quantity
+• 2 Modality
+
+L (Limit price)
+
+• 4 Validity
+
+J (Day)
+
+• 3 Price
+• 91 Application side
+• 92 Hour date station
+• 106 GLID
+• 147 Floor Trader ID
+• 192 Currency
+• 306 Second Client Code Type
+
+3
+
+Number of Orders (N) :
+
+‘002’
+
+5
+
+Length :
+
+5
+
+User Number :
+
+1
+
+Request category :
+
+‘O’
+
+1
+
+Command :
+
+‘0’
+
+X
+
+Stock code :
+
+5
+
+Number of data fields coded :
+
+5
+
+Filler :
+
+‘
+
+‘
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+20
+
+Name of the column
+
+L1,
+
+Value
+
+Data :
+• 0 Side
+
+0 (Buy)
+
+• 10 Client Reference
+• 12 Internal Reference
+• 17 Client Code Type
+• 19 Allocation Code
+• 21 Posting Mode
+• 24 Compensation Mode 1
+• 81 Memo
+• 132 Clearing Account 1
+• 317 Client Free Field 1
+• 318 Client Free Field 2
+
+5
+
+Length :
+
+5
+
+User Number :
+
+1
+
+Request category :
+
+‘O’
+
+1
+
+Command :
+
+‘0’
+
+X
+
+Stock code :
+
+5
+
+Number of data fields coded:
+
+5
+
+Filler :
+
+‘
+
+‘
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+21
+
+Name of the column
+
+L2
+
+Value
+
+Data :
+• 0 Side
+
+1 (Sell)
+
+• 10 Client Reference
+• 12 Internal Reference
+• 17 Client Code Type
+• 19 Allocation Code
+• 21 Posting Mode
+• 24 Compensation Mode 1
+• 81 Memo
+• 132 Clearing Account 1
+• 317 Client Free Field 1
+• 318 Client Free Field 2
+• 484 Order Side Qualifier
+
+Mass Quote Management (request 2040)
+Not supported by API Messenger.
+In request 2040, data can be set in the Header (Default data below) and in the Legs. Whet is defined in the Header is set
+automatically for all the Legs. But if the same field is sent in one of the Legs with a different value, it is not over written by the value of
+the Header.
+Example: if the Quantity is set to 10 in the Header, to 20 in the first Leg and not set in the other Legs, then:
+• The SLE will consider the Quantity for the first Leg = 20
+• The SLE will consider the Quantity for the other Legs = 10
+On WSE just one side of a Quote can be sent. It is not mandatory to send always Bid and Ask together.
+WSE supports until 150 Bids and 150 Asks in a single message. This is the maximum that has to be sent in FIS Market Data Server
+API.
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+22
+
+Name of the column
+
+Value (Example)
+
+1
+
+Message Type :
+
+‘M’
+
+X,
+
+Default Stockcode for all orders
+
+5
+
+Number of default data fields coded :
+
+5
+
+Filler
+
+H
+
+Data :
+
+‘
+
+‘
+
+• 1 Quantity
+• 10 Client Reference
+• 12 Internal Reference
+• 21 Posting Mode
+• 24 Compensation Mode 1
+• 17 Client Code Type
+• 19 Allocation Code
+• 81 Memo
+• 91 Application side
+• 92 Hour date station
+• 106 GLID
+• 132 Clearing Account 1
+• 146 Trader ID
+• 192 Currency
+• 306 Second Client Code Type
+
+3
+
+Number of Orders (N) :
+
+5
+
+Length :
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+23
+
+Name of the column
+
+Value (Example)
+
+5
+
+User Number :
+
+1
+
+Request category :
+
+‘O’
+
+1
+
+Command :
+
+‘0’ or ‘1’ or ‘2’
+
+X,
+
+Stock code :
+
+5
+
+Number of data fields coded :
+
+5
+
+Filler:
+
+LN
+
+Data :
+
+‘
+
+‘
+
+• 0 Side
+• 1 Quantity
+• 4 Price
+• 192 Currency
+
+(if different from the default currency)
+
+*H : Head – LN: Leg N
+
+Order Real Time Response (request 2019)
+Position
+
+Name
+
+Type
+
+Coding
+
+length
+
+Chaining
+
+NUM
+
+ASCII
+
+1
+
+HEADER
+
+A
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+24
+
+Position
+
+Name
+
+Type
+
+Coding
+
+length
+
+B
+
+User number
+
+NUM
+
+ASCII
+
+5
+
+C
+
+Request category
+
+CHAR
+
+ASCII
+
+1
+
+D
+
+Reply type
+
+CHAR
+
+ASCII
+
+1
+
+E
+
+Index
+
+NUM
+
+ASCII
+
+6
+
+F
+
+Number of replies
+
+NUM
+
+ASCII
+
+5
+
+G
+
+Stock code
+
+CHAR
+
+GL
+
+X
+
+Filler
+
+FILLER
+
+FILLER
+
+10
+
+0
+
+Side
+
+NUM
+
+GL
+
+X
+
+1
+
+Quantity
+
+NUM
+
+GL
+
+X
+
+2
+
+Modality
+
+CHAR
+
+GL
+
+X
+
+3
+
+Price
+
+NUM
+
+GL
+
+X
+
+4
+
+Validity
+
+CHAR
+
+GL
+
+X
+
+5
+
+Expiry date
+
+CHAR
+
+GL
+
+X
+
+8
+
+Minimum quantity
+
+NUM
+
+GL
+
+X
+
+BITMAP
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+25
+
+Position
+
+Name
+
+Type
+
+Coding
+
+length
+
+9
+
+Displayed quantity
+
+CHAR
+
+GL
+
+X
+
+10
+
+Client reference
+
+CHAR
+
+GL
+
+X
+
+12
+
+Internal reference
+
+CHAR
+
+GL
+
+X
+
+13
+
+Exchange number
+
+CHAR
+
+GL
+
+X
+
+16
+
+Order type (OTC only)
+
+CHAR
+
+GL
+
+X
+
+17
+
+Client Code Type
+
+CHAR
+
+GL
+
+X
+
+19
+
+Allocation Code
+
+CHAR
+
+GL
+
+X
+
+21
+
+Posting Mode
+
+CHAR
+
+GL
+
+X
+
+24
+
+Compensation Mode 1
+
+CHAR
+
+GL
+
+X
+
+26
+
+Stop loss price
+
+NUM
+
+GL
+
+X
+
+27
+
+Routing reference
+
+CHAR
+
+GL
+
+X
+
+30
+
+Order status
+
+CHAR
+
+GL
+
+X
+
+36
+
+Order time
+
+CHAR
+
+GL
+
+X
+
+37
+
+Remain quantity
+
+NUM
+
+GL
+
+X
+
+38
+
+Number of executions
+
+NUM
+
+GL
+
+X
+
+40
+
+Average price
+
+NUM
+
+GL
+
+X
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+26
+
+Position
+
+Name
+
+Type
+
+Coding
+
+length
+
+41
+
+Order status
+
+NUM
+
+GL
+
+X
+
+42
+
+SLE reference
+
+CHAR
+
+GL
+
+X
+
+44
+
+Total executed quantity
+
+CHAR
+
+GL
+
+X
+
+48
+
+Execution price
+
+NUM
+
+GL
+
+X
+
+49
+
+Execution quantity
+
+NUM
+
+GL
+
+X
+
+51
+
+Exchange trade number
+
+NUM
+
+GL
+
+X
+
+52
+
+Trade time
+
+NUM
+
+GL
+
+X
+
+53
+
+Trade type
+
+CHAR
+
+GL
+
+X
+
+56
+
+Exchange number
+
+CHAR
+
+GL
+
+X
+
+57
+
+Acknowledgement type
+
+CHAR
+
+GL
+
+X
+
+58
+
+Time of trade booking
+
+CHAR
+
+GL
+
+X
+
+59
+
+Type of acknowledged command
+
+CHAR
+
+GL
+
+X
+
+60
+
+Old quantity
+
+CHAR
+
+GL
+
+X
+
+61
+
+Old price
+
+CHAR
+
+GL
+
+X
+
+62
+
+Index
+
+CHAR
+
+GL
+
+X
+
+64
+
+Reject type
+
+CHAR
+
+GL
+
+X
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+27
+
+Position
+
+Name
+
+Type
+
+Coding
+
+length
+
+65
+
+Rejects code
+
+CHAR
+
+GL
+
+X
+
+66
+
+Rejects time
+
+CHAR
+
+GL
+
+X
+
+67
+
+Rejected command type
+
+CHAR
+
+GL
+
+X
+
+72
+
+Exchange message type
+
+CHAR
+
+GL
+
+X
+
+73
+
+Exchange message code
+
+CHAR
+
+GL
+
+X
+
+80
+
+GL Routor
+
+CHAR
+
+GL
+
+X
+
+81
+
+Memo
+
+CHAR
+
+GL
+
+X
+
+91
+
+Application side
+
+CHAR
+
+GL
+
+X
+
+92
+
+Hour date station
+
+CHAR
+
+GL
+
+X
+
+104
+
+Node.Subnode
+
+CHAR
+
+GL
+
+X
+
+106
+
+GLID
+
+CHAR
+
+GL
+
+X
+
+132
+
+Clearing Account1
+
+CHAR
+
+GL
+
+X
+
+136
+
+Settlement date (OTC only)
+
+CHAR
+
+GL
+
+X
+
+117
+
+Exchange cancel quantity
+
+CHAR
+
+GL
+
+X
+
+179
+
+Counterparty (OTC only)
+
+CHAR
+
+GL
+
+X
+
+147
+
+Floor Trader ID
+
+CHAR
+
+GL
+
+X
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+28
+
+Position
+
+Name
+
+Type
+
+Coding
+
+length
+
+164
+
+Horodate trade
+
+CHAR
+
+GL
+
+X
+
+181
+
+Previous Internal Reference
+
+CHAR
+
+GL
+
+X
+
+192
+
+Currency
+
+CHAR
+
+GL
+
+X
+
+195
+
+User Command
+
+CHAR
+
+GL
+
+X
+
+196
+
+Trigger parameter
+
+CHAR
+
+GL
+
+X
+
+204
+
+Trigger position
+
+CHAR
+
+GL
+
+X
+
+210
+
+Alert Message Code
+
+CHAR
+
+GL
+
+X
+
+241
+
+Work List
+
+CHAR
+
+GL
+
+X
+
+245
+
+Work Reference Price
+
+CHAR
+
+GL
+
+X
+
+261
+
+Order ID
+
+NUM
+
+GL
+
+X
+
+292
+
+Previous client account
+
+CHAR
+
+GL
+
+X
+
+293
+
+Work Price Gap
+
+CHAR
+
+GL
+
+X
+
+294
+
+Work Limit Max Price
+
+CHAR
+
+GL
+
+X
+
+301
+
+Type value SLE V5
+
+CHAR
+
+GL
+
+X
+
+306
+
+Second Client Code Type
+
+CHAR
+
+GL
+
+X
+
+314
+
+Complementary trade type
+
+CHAR
+
+GL
+
+X
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+29
+
+Position
+
+Name
+
+Type
+
+Coding
+
+length
+
+317
+
+Client free field 1
+
+CHAR
+
+GL
+
+X
+
+318
+
+Client free field 2
+
+CHAR
+
+GL
+
+X
+
+339
+
+Order version
+
+CHAR
+
+GL
+
+X
+
+345
+
+Order command ID
+
+CHAR
+
+GL
+
+X
+
+352
+
+Trader Mandator code
+
+CHAR
+
+GL
+
+X
+
+393
+
+Work Price Gap Type
+
+CHAR
+
+GL
+
+X
+
+444
+
+V5 Command
+
+CHAR
+
+GL
+
+X
+
+484
+
+Order Side Qualifier
+
+CHAR
+
+GL
+
+X
+
+569
+
+Trade Liquidity Provider
+
+CHAR
+
+GL
+
+X
+
+619
+
+FIX tag 55
+
+CHAR
+
+GL
+
+X
+
+624
+
+Session Id
+
+CHAR
+
+GL
+
+X
+
+625
+
+Session name IN
+
+CHAR
+
+GL
+
+X
+
+626
+
+Session name OUT
+
+CHAR
+
+GL
+
+X
+
+627
+
+Route name
+
+CHAR
+
+GL
+
+X
+
+635
+
+FIX tag 100
+
+CHAR
+
+GL
+
+X
+
+760
+
+First Exchange Order Id
+
+CHAR
+
+GL
+
+X
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+30
+
+Position
+
+Name
+
+Type
+
+Coding
+
+length
+
+762
+
+Confirmation
+
+CHAR
+
+GL
+
+X
+
+764
+
+GMT Stream date
+
+CHAR
+
+GL
+
+X
+
+797
+
+Quantity pending
+
+CHAR
+
+GL
+
+X
+
+845
+
+Client ID
+
+CHAR
+
+GL
+
+X
+
+883
+
+External party
+
+CHAR
+
+GL
+
+X
+
+1014
+
+Previous validity
+
+CHAR
+
+GL
+
+X
+
+1069
+
+Core Message Sending Timestamp
+
+NUM
+
+GL
+
+X
+
+1070
+
+Core Message Receipt Timestamp
+
+NUM
+
+GL
+
+X
+
+1072
+
+Core Trade Timestamp
+
+NUM
+
+GL
+
+X
+
+1073
+
+Core Acknowledge Timestamp
+
+NUM
+
+GL
+
+X
+
+1075
+
+AP Message Sending Timestamp
+
+NUM
+
+GL
+
+X
+
+1076
+
+AP Message Receipt Timestamp
+
+NUM
+
+GL
+
+X
+
+1077
+
+AP Trade Timestamp
+
+NUM
+
+GL
+
+X
+
+1078
+
+AP acknowledge timestamp
+
+NUM
+
+GL
+
+X
+
+1080
+
+AP reject timestamp
+
+NUM
+
+GL
+
+X
+
+1085
+
+Order server creation date
+
+NUM
+
+GL
+
+X
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+31
+
+Position
+
+Name
+
+Type
+
+Coding
+
+length
+
+1155
+
+Reject reason
+
+NUM
+
+GL
+
+X
+
+1200
+
+Cumul Reverse Trade Quantity
+
+NUM
+
+GL
+
+X
+
+1234
+
+IOI ID
+
+CHAR
+
+GL
+
+X
+
+1238
+
+MIC Code
+
+CHAR
+
+GL
+
+X
+
+1267
+
+FIX Client Ref ID
+
+CHAR
+
+GL
+
+X
+
+1358
+
+User ID
+
+NUM
+
+GL
+
+X
+
+1449
+
+Direct Electronic Access
+
+NUM
+
+GL
+
+X
+
+1470
+
+Client Identification Code
+
+CHAR
+
+GL
+
+X
+
+1482
+
+Execution Decision Maker ID
+
+CHAR
+
+GL
+
+X
+
+1481
+
+Waiver Indicator
+
+NUM
+
+GL
+
+X
+
+1483
+
+Exchange Investment Decision Maker ID
+
+CHAR
+
+GL
+
+X
+
+1488
+
+Execution Decision Maker Type
+
+NUM
+
+GL
+
+X
+
+1489
+
+Investment Decision Maker Type
+
+NUM
+
+GL
+
+X
+
+1532
+
+Confirmation for value
+
+NUM
+
+GL
+
+X
+
+1533
+
+Confirmation for volume
+
+NUM
+
+GL
+
+X
+
+1534
+
+Confirmation for Collar
+
+NUM
+
+GL
+
+X
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+32
+
+SLE Fields and domain value definition
+B
+
+User Number
+
+This field indicates the GL user number which is the identifier of the user
+User Number into [0-9999]
+
+C
+
+Request category
+
+This field indicates the order type
+
+O
+
+Simple order
+
+A
+
+OTC order
+
+D1
+
+Command
+
+0
+
+New order
+
+1
+
+Cancel order
+
+2
+
+Update order
+
+3
+
+Refuse (for OTC orders)
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+33
+
+G
+
+Stockcode
+
+This field indicates the instrument.
+Here, the stock code used is the Trading Code (Trading ISIN).
+• For normal orders, cross, quotes, it is the ISIN
+• For Off-Exchange and IOI it is the ISIN where the last digit is replaced by ‘B’
+• For IPO it is the ISIN where the last digit is replaced by ‘I’
+In all cases it is what’s received from the Market Data Server in the ISIN field
+
+A
+
+Chaining
+
+This field indicates if the response is the last one
+
+0
+
+Last one
+
+1
+
+Otherwise
+
+D
+
+Reply type
+
+This field indicates the reply type
+
+A
+
+Exchange acknowledgement
+
+C
+
+Exchange reject
+
+G
+
+GL reject
+
+R
+
+Trade execution
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+34
+
+D
+
+Reply type
+
+J
+
+Exchange message number
+
+L
+
+Inflected message
+To receive this message, you must ask them into the request 2017
+
+E
+
+Index
+
+This field indicates the index of the response in the SLE Database
+
+F
+
+Number of replies
+
+This field indicates the number of replies
+
+0
+
+Side
+
+This field indicates the side of the message
+
+0
+
+Buy
+
+1
+
+Sell
+
+1
+
+Quantity
+
+This field indicates the quantity
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+35
+
+2
+
+Modality
+
+L
+
+Limit price
+
+B
+
+At best
+
+M
+
+Market
+
+3
+
+Price
+
+This field indicates the original order price
+For the modalities « At market », « At best », don’t fill the price.
+
+4
+
+Validity
+
+J
+
+Day
+Order can be executed only during the day. It will eliminate if it wasn’t executed.
+
+K
+
+FOK (Fill or Kill)
+Order will execute only if it can be executed in totality.
+
+E
+
+E&E (Executed and Eliminated)
+Order is immediately executed for the available quantity. If a total execution isn’t possible, the remaining is eliminated.
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+36
+
+4
+
+Validity
+
+D
+
+GTD (Good until date) or GTT (Good Till Time)
+Order remains available until the date / the time
+For GTD:
+- Field #5 must be filled with the expiry date
+- Field #6 must not be sent
+For GTT:
+- Field #5 must be filled with today’s date
+- Field #6 must be filled with the expiry time
+
+R
+
+GTC (Good until cancelled)
+Order remains available until it will cancel or eliminate.
+
+V
+
+Auction
+Can be entered during each market phase, but the Order is processed at the nearest auction only (opening, closing and
+instrument unhalt). The unfilled quantity is cancelled immediately after the completion of auction processing.
+
+C
+
+Closing
+Can be entered during each market phase, but the Order is processed at the nearest closing auction only. The unfilled
+quantity is cancelled immediately after the completion of closing auction.
+
+5
+
+Expiry date
+
+This field indicates the expiry date. The format is YYYYMMDD
+This field must be filled when the validity is «Good until date »
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+37
+
+6
+
+Expiry time
+
+This field indicates the expiry time in CET. The format is HHMMSS
+This field can be filled when the validity is «Good until date »
+
+8
+
+Minimum quantity
+
+Order is accepted only if it’s possible to execute at least this
+quantity
+
+9
+
+Displayed quantity (Single order)
+
+This field indicates the displayed quantity for iceberg orders
+
+10
+
+Client reference
+
+This field indicates the account.
+Maximum length is 8 characters
+This field is mapped with WSE UTP “ClientID” field.
+
+12
+
+Internal reference
+
+It’s a free text field and no controls are made on the contents of this field at order entry. If this field is used as an order identifier,
+the content of this field must not be modified during the complete order life cycle.
+It is also used as an identifier of the order in case of communication other than direct API connection (egg: Messenger).
+The length of this field is 16 characters maximum
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+38
+
+13
+
+Exchange number
+
+This field indicates the exchange number. The exchange number is a number attributed by the exchange for the respective order.
+This field is mandatory for modification and cancellation.
+In case of reject, this field contains the number of the reject.
+
+16
+
+Order Type (OTC order)
+
+This field indicates the type of Off Exchange sent. In case the value is O, an IOI will be sent and the fields are particular to IOI
+(see the corresponding chapter)
+In other cases, the fields are the normal OTC fields
+
+B
+
+Block
+
+I
+
+BISO
+
+R
+
+Trade report
+
+17
+
+Client Code Type
+
+Indicates the client code type
+It is mapped with WSE UTP “Rule80A” field
+
+C
+
+Client
+
+H
+
+First House
+
+L
+
+Liquidity Provider
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+39
+
+17
+
+Client Code Type
+
+M
+
+Non-Member LP 1
+
+N
+
+Non-Member LP2
+
+O
+
+Non-Member LP3
+
+Q
+
+Member issuer LP
+
+R
+
+Non Member issuer LP
+
+P
+
+Matched Principal
+
+17
+
+Client Code Type (for OTC order)
+
+Indicates the client code type
+It is mapped with WSE UTP “Rule80A” field
+
+C
+
+Client
+
+H
+
+House
+
+L
+
+Liquidity Provider
+
+E
+
+Liquidity Provider External 1
+
+F
+
+Liquidity Provider External 2
+
+G
+
+Liquidity Provider External 3
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+40
+
+19
+
+Allocation Code
+
+This field indicates the Clearing Firm
+8 characters maximum
+It is mapped with WSE UTP “ClearingFirm” field
+
+21
+
+Posting Mode
+
+This field indicates the Posting Mode
+
+O
+
+Opening
+
+C
+
+Closing
+
+‘’
+
+Default
+
+24
+
+Compensation Mode 1
+
+This field indicates the Compensation Mode 1
+
+0
+
+Manual
+
+1
+
+Automatic Extraction
+
+2
+
+Automatic Allocation
+
+‘‘
+
+Default
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+41
+
+26
+
+Stop loss price
+
+This field contains the trigger price
+
+27
+
+Routing reference
+
+Free field of variable length.
+The maximum length is 125 if the P3 is < at 4.84 and 223 is the P3 is > 4.84
+
+30
+
+Byte1
+
+Order status
+
+Byte 2
+
+This field indicates the order status
+
+Order in cancellation
+
+X
+
+A
+
+Order partially or totally executed and in cancellation
+
+Order cancelled
+
+A
+
+A
+
+Waiting cancellation
+
+A
+
+G
+
+Order frozen and cancelled
+
+A
+
+X
+
+Order cancelled, partially executed
+
+E
+
+Order in waiting
+
+L
+
+Order eliminated
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+42
+
+30
+
+L
+
+Order status
+
+X
+
+N
+
+N
+
+Order partially executed and eliminated
+
+Order in modification
+
+X
+
+O
+
+Order partially or totally executed and in modification
+
+Order acknowledged
+
+O
+
+G
+
+Order frozen
+
+O
+
+X
+
+Order partially executed
+
+R
+
+Order rejected
+
+R
+
+X
+
+Order rejected, partially or totally executed
+
+T
+
+X
+
+Order totally executed
+
+36
+
+Order time
+
+This field indicates the date and time of emission for the server.
+Format : YYYYMMDDHHMMSS
+
+37
+
+Remain quantity
+
+This field indicates the quantity of the order remaining on the market.
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+43
+
+38
+
+Number of executions
+
+This field indicates the number of market executions.
+
+40
+
+Average price
+
+This field indicates the average price of the order
+
+41
+
+Order status
+
+This field is present to insure the compatibility.
+The field « order status » which must be used is the field 30
+
+42
+
+SLE reference
+
+This field is for an SLE Reference
+
+44
+
+Total executed quantity
+
+If an order is multiple filled, this field contains the total executed quantity.
+
+48
+
+Execution price
+
+This field indicates the execution price (Trade Price)
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+44
+
+49
+
+Executed quantity
+
+This field indicates the quantity executed for the respective execution
+
+51
+
+Exchange trade number
+
+This field indicates the official trade execution number for the respective execution (Trade Number)
+"This field is mapped with WSE UTP "Execution ID"
+
+52
+
+Trade time
+
+This field indicates the trade time.
+Format YYYYMMDDHHMMSS
+
+53
+
+Trade type
+
+This indicates the trade type
+
+A
+
+Trade cancelled by the exchange
+
+‘‘
+
+Trade
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+45
+
+56
+
+Exchange number
+
+This field contains the number attributed by the exchange.
+In the case of modification, it contains the exchange number of the modified order
+
+57
+
+Acknowledged Type
+
+Specify the type of acknowledgement
+
+‘1’
+
+Acknowledgement of a cancellation request
+
+‘2’
+
+Order eliminated.
+
+‘3’
+
+Stock frozen.
+
+‘4’
+
+Placed Order Book
+
+‘5’
+
+Placed order book immediate execution
+
+‘6’
+
+Declaration Notification
+
+‘7’
+
+Cancellation notification
+
+‘8’
+
+Refusal notification
+
+‘9’
+
+Execution cancellation notification
+
+‘T’
+
+Order terminated
+
+‘d’
+
+Collar Confirmation is needed
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+46
+
+‘1’
+
+Acknowledgement of a cancellation request
+
+‘C’
+
+Book change
+
+‘D’
+
+Done For Day
+
+‘O’
+
+Tender Offer
+
+‘X’
+
+ReOpened Order
+
+58
+
+Time of trading booking
+
+Time of order entry given by the exchange
+Format : YYYYMMDDHHMMSS
+
+59
+
+Type of acknowledged command
+
+This parameter indicates the command type for which the acknowledgement is received
+
+‘0’
+
+Acknowledgement of an order
+
+‘1’
+
+Acknowledgement of a cancellation.
+
+‘2’
+
+Acknowledgement of a modification.
+
+‘6’
+
+Declaration of notification (OTC order)
+
+‘9’
+
+Contra trade (OTC order) – This value is received when a notification of OTC is cancelled due to the emitter cancelling his
+side
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+47
+
+59
+
+Type of acknowledged command
+
+‘A’
+
+Stop order triggered
+
+60
+
+Old quantity
+
+This field contains the quantity of the previous order
+
+61
+
+Old price
+
+This field contains the price of the previous order
+
+62
+
+Index
+
+The order index
+
+64
+
+Reject type
+
+This field contains the reject type
+
+65
+
+Reject code
+
+This field contains the reject code.
+To know the meaning see the file Msgrejet.dat
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+48
+
+66
+
+Time of reject
+
+Time of reject given by the exchange
+Format : YYYYMMDDHHMMSS
+
+67
+
+Type of rejected command
+
+This parameter indicates the command type for the reject received
+
+‘0’
+
+Acknowledgement of an order
+
+‘1’
+
+Acknowledgement of a cancellation
+
+‘2’
+
+Acknowledgement of a modification
+
+72
+
+Exchange message type
+
+This field contains the type of message
+
+‘1’
+
+Information concerning change of market status.
+
+‘2’
+
+Information concerning change of stock group.
+
+‘3’
+
+Information concerning change of order class.
+
+‘4’
+
+Information concerning change of stock status.
+
+‘5’
+
+Information concerning the link status with the exchange
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+49
+
+72
+
+Exchange message type
+
+‘6’
+
+Monitoring / Exchange
+This value is used when the exchange wants to inform clients on a global behaviour.
+This value can also be used when we have a global phase change at the exchange level.
+
+‘8’
+
+Other (stock code).
+
+‘9’
+
+Other (stock name).
+
+‘G’
+
+Information concerning change of stock group (equivalent to ‘2’)
+
+‘C’
+
+Information concerning Option Class
+
+‘O’
+
+Information concerning Option
+
+73
+
+Exchange message code
+
+This field contains the type of information message
+
+‘A’
+
+One of the links with the exchange partially lost. (if field 72 equal 5)
+
+‘B’
+
+End of trading session.
+
+‘C’
+
+Start of consultation
+
+‘D’
+
+Delayed quotation
+
+‘E’
+
+Closed
+
+‘F’
+
+End of consultation
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+50
+
+73
+
+Exchange message code
+
+‘G’
+
+Frozen
+
+‘I’
+
+Forbidden
+
+‘M’
+
+Monitoring interruption.
+
+‘N’
+
+Link with the exchange established. (if field 72 equal 5)
+
+‘O’
+
+During pre-opening
+
+‘P’
+
+Pre-opening
+
+‘Q’
+
+Blocked
+
+‘S’
+
+Trading.
+
+‘T’
+
+End of Opening
+
+‘V’
+
+Suspension
+
+‘X’
+
+Uncrossing
+
+‘Z’
+
+Interruption
+
+‘Z’
+
+Link with the exchange lost. (if field 72 equal 5)
+
+In case the message is for a group
+
+‘R’
+
+Trading after fixing
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+51
+
+80
+
+GL Routor
+
+This field is used by the API Messenger
+
+81
+
+Memo
+
+This field is a free text (not send to the exchange)
+The length of this field is 18 characters.
+This field is mapped with WSE UTP “FreeText” field
+
+91
+
+Application side
+
+Used only when the client is using Smart Order Routor (SOR) in messages 2000 and 2019
+Otherwise not used
+
+‘‘
+
+Default
+
+E
+
+EDA
+
+H
+
+DMA
+
+I
+
+ATS
+
+Y
+
+SOR
+
+92
+
+Hour date station
+
+This field is used to store the time value sent by the client
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+52
+
+104
+
+Node.Subnode
+
+This field indicates the Node.Subnode
+
+106
+
+GLID
+
+Allow to identify the exchange and the market.
+The format is :
+
+Exchange (4)Source (2) Market (3) Sub market (3)
+You can find the values for the fields exchange and market into the file licsym.ini.
+This field is MANDATORY
+
+117
+
+Exchange cancel quantity
+
+This field is the Exchange cancel quantity. It is the Order total quantity minus the matched quantity at order entry
+
+132
+
+Clearing Account1
+
+This field is mapped with the field Account at the exchange side
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+53
+
+136
+
+Settlement date (OTC Order)
+
+This field indicates the Settlement date
+Format YYYYMMDD.
+
+140
+
+Elimination reason
+
+This field indicates the reason of the order elimination
+To be completed (waiting for Exchange specification update)
+
+147
+
+Floor Trader ID
+
+This field is for the subscriber identification code
+This field is mapped with WSE UTP “OnBehalfOfCompID” field
+
+164
+
+Horodate trade
+
+This field indicates the time of the last execution
+
+179
+
+Counterparty (OTC order)
+
+Counterparty, mandatory for OTC orders
+Length 8 characters
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+54
+
+181
+
+Previous Internal Reference
+
+Sent by the SLE when the Internal reference has been changed by the emitter, for example in case of a modification or
+cancellation.
+This field is sent in replies (2019)
+
+192
+
+Currency
+
+This field is the Currency
+
+195
+
+User Command
+
+This field is the user command
+
+196
+
+Trigger parameter
+
+This field indicates the Trigger parameter
+
+Remark:
+The combination of the values ‘SI’ is permitted.
+The combination of the values ‘IS’ is not permitted.
+
+I
+
+Iceberg order
+
+S
+
+Stop order
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+55
+
+204
+
+Trigger position
+
+This field is the trigger position
+
+210
+
+Alert Message Code
+
+This field is Alert Message Code
+
+L
+
+241
+
+Collar confirmation
+
+Work List
+
+This field is for the price increment type for Peg orders
+
+D
+
+245
+
+Absolute
+
+Work Reference Price
+
+This field is for the Reference Price type for Peg orders
+Warning: this field is checked by the Trading Line Handler upon receipt of a Peg Order because WSE authorizes only Pegs based
+on the same side of BBO.
+So if the Side of the Peg is Buy and the Work Reference Price is Ask, or if the Side of the Peg is Sell and the Work Reference
+Price is Bid, then the Peg will be rejected GL 025.
+
+A
+
+Ask
+
+B
+
+Bid
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+56
+
+261
+
+Order ID
+
+Indicates a unique ID for an order.
+This reference doesn’t change during the order life.
+This reference is generated by the SLE.
+This ID can be used as a key
+
+292
+
+Previous client account
+
+This field indicates the previous client account
+
+294
+
+Work Limit Max Price
+
+This field indicates the WorkLimitMaxPrice for Peg order
+
+301
+
+Type value SLE V5
+
+This field is for the specific type of the order
+
+N
+
+Normal Order
+
+A
+
+OTC Order
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+57
+
+306
+
+SecondClientOrderType
+
+This field is mapped with WSE UTP “TechnicalOrdType” field
+It is not mandatory
+
+‘‘
+
+Default
+
+A
+
+Any Origin
+
+P
+
+PAM Origin
+
+B
+
+Broker
+
+I
+
+Internet
+
+D
+
+DMA
+
+C
+
+Cellphone
+
+5
+
+Internal 5
+
+6
+
+Internal 6
+
+7
+
+Internal 7
+
+8
+
+Internal 8
+
+9
+
+Internal 9
+
+b
+
+Internal B
+
+c
+
+Internal C
+
+d
+
+Internal D
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+58
+
+306
+
+SecondClientOrderType
+
+e
+
+Internal E
+
+f
+
+Internal F
+
+g
+
+Internal G
+
+k
+
+Internal K
+
+l
+
+Internal L
+
+m
+
+Internal M
+
+n
+
+Internal N
+
+314
+
+Complementary trade type
+
+48
+
+Tender offer
+
+317
+
+Client Free Field1
+
+Free Text for client
+String on 16 characters
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+59
+
+318
+
+Client Free Field2
+
+Free Text for client
+String on 32 characters
+
+339
+
+Order version
+
+Only in reply
+Indicate the order version
+
+345
+
+Order command ID
+
+This field indicates the Order command ID
+
+352
+
+Trader Mandator Code
+
+The Trader mandator Code indicates the DMAClientID in case of sponsored Access.
+Direct Market Access will enable market participants that are not member firms to submit orders directly to the exchange trading
+system.
+These market participants will be sponsored by members who will be able to receive all orders/trade using Drop Copy, and to set
+filters for their sponsored clients inside UTP system.
+
+393
+
+Work Price Gap Type
+
+This field indicates the Price Gap Type for Peg orders
+Warning: this field must be set to absolute otherwise the Trading Line Handler will reject GL 028
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+60
+
+393
+
+Work Price Gap Type
+
+3
+
+Absolute
+
+444
+
+V5 Command
+
+This field is for the V5 command
+Sent by the SLE in the reply only
+
+““
+
+Default
+
+0
+
+Creation
+
+1
+
+Cancel
+
+2
+
+Update
+
+3
+
+Refuse
+
+484
+
+Order Side Qualifier
+
+This field indicates whether the Order should be a Sell or Short Sell. This field should be set only if the Order Side is 1 (Sell).
+
+1
+
+Short Sell
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+61
+
+569
+
+Trade Liquidity Indicator
+
+Field sent by WSE on trades to indicate what effect an order has had on the liquidity of the book.
+Client’s rates are determined by whether an order adds or removes liquidity
+from the book.
+
+1
+
+Order added liquidity
+
+2
+
+Order Remove Liquidity
+
+3
+
+Auction
+
+9
+
+Routed
+
+619
+
+FIX tag 55
+
+Fix Tag 55
+
+624
+
+Session ID
+
+Session ID
+
+625
+
+Session name IN
+
+Session name IN
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+62
+
+626
+
+Session name OUT
+
+Session name OUT
+
+627
+
+Route name
+
+Route name
+
+635
+
+FIX tag 100
+
+FIX tag 100
+
+760
+
+First Exchange Oder ID
+
+First Exchange Order ID
+
+762
+
+Confirmation
+
+This field indicates if the Order should be sent even if outside dynamic collars. It is mapped with WSE UTP “ConfirmFlag”
+
+‘‘
+
+Default (same as Eliminate)
+
+1
+
+Confirm (confirm both collars and capital)
+
+2
+
+Eliminate (confirm neither collars nor capital)
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+63
+
+762
+
+Confirmation
+
+3
+
+Confirm collars not capital
+
+4
+
+Confirm capital not collars
+
+764
+
+GMT Stream Date
+
+Stream sever date in GLT format
+
+797
+
+Quantity Pending
+
+Quantity Pending
+
+845
+
+Client ID
+
+Client ID
+
+883
+
+External Party
+
+External Party
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+64
+
+1014
+
+Previous Validity
+
+Previous Validity
+
+1069
+
+Core Message Sending Timestamp
+
+Core Message Sending Timestamp. the server fills this field with the ISO8601 format. Format: YYYY-MM-DDThh:mmTZD (eg
+1997-07-16T19:20+01:00)
+
+1070
+
+Core Message Receipt Timestamp
+
+Core Message Receipt Timestamp. the Server fills this field with the ISO8601 format. Format: YYYY-MM-DDThh:mmTZD (eg
+1997-07-16T19:20+01:00)
+
+1072
+
+Core Trade Timestamp
+
+Core Trade Timestamp. the server fills this field with the ISO8601 Format: YYYY-MM-DDThh:mmTZD (eg
+1997-07-16T19:20+01:00)
+
+1073
+
+Core Acknowledge Timestamp
+
+Core Acknowledge Timestamp.the server fills this field with the ISO8601 Format: YYYY-MM-DDThh:mmTZD (eg
+1997-07-16T19:20+01:00)
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+65
+
+1075
+
+AP Message Sending Timestamp
+
+The time the message is transmitted from the Trading Line Handler to the venue expressed in microseconds, Time Zone UTC
+
+1076
+
+AP Message Receipt Timestamp
+
+The time the message is received by the Trading Line Handler from the venue. Expressed in microseconds, TimeZone UTC
+
+1077
+
+Ap Trade Timestamp
+
+This field indicates the horodatage GMT ISO8601 of an order execution in milliseconds. Timestamps Support microsecond-level
+granularity, Time Zone UTC.
+
+1078
+
+AP acknowledge timestamp
+
+This field indicates the horodatage GMT ISO8601 of an order acknowledgment in milliseconds. Timestamps Support
+microsecond-level granularity, Time Zone UTC.
+
+1080
+
+AP reject timestamp
+
+This field indicates the horodatage GMT ISO8601 of an order reject in milliseconds. Timestamps Support microsecond-level
+granularity, Time Zone UTC
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+66
+
+1085
+
+Order Server Creation Date
+
+Indicates the SERVER order creation
+
+1155
+
+Reject Reason
+
+Indicates what will happen after the reject
+
+1200
+
+Cumul Reserve Trade Quantity
+
+Calculation of Cumul Reverse Trade Quantity
+
+1234
+
+IOI ID (OTC orders)
+
+This field indicates the IOI ID. It is mapped with WSE field IOIUTPID.
+It must be populated by the client case of a Reply (request 2000) to an IOI through an OTC (Block or BISO)
+
+1238
+
+MIC Code
+
+This field contains the MIC code of the traded instrument. It is disseminated in the order acknowledgements and trade messages
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+67
+
+1267
+
+FIX Client ref Id
+
+This field contains the ClOrdID sent by the Trading Line Handler to WSE in the order sending message.It is disseminated in 2019
+messages for order acknowledgements and exchange rejections.
+
+1358
+
+User Id
+
+This field is dedicated for user number grater then the max (28671). This field is used especially for API V3 clients.
+
+1449
+
+Direct Electronic Access
+
+Order submitted via a DEA connection or sponsored access customer
+
+‘1‘
+
+The trader has direct electronic access
+
+‘2’
+
+Trader does not have direct electronic access
+
+1470
+
+Client Identification Code
+
+Short code for the individual or organization that is acquiring the financial instrument. String (16 chars). Either a client ID or one of
+the following reserved values: NONE = no client AGGR = aggregated orders PNAL = pending allocations
+
+1481
+
+Waiver indicator
+
+Indication as to whether the transaction was executed under a pre-trade waiver in accordance with Articles 4 and 9 of Regulation
+(EU) 600/2014. This information is received in execution from the exchange.
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+68
+
+1481
+
+Waiver indicator
+
+‘1‘
+
+LRGS : Large in scale For equity instruments. Applies to all instruments.
+
+‘3’
+
+NLIQ : Negotiated transactions in liquid financial instruments. Applies to all instruments.
+
+‘4’
+
+OILQ : Negotiated transactions in illiquid financial instruments. Applies to all instruments.
+
+1482
+
+Execution Decision Maker ID
+
+Code used to identify the person or algorithm within the investment firm who is responsible for the execution decision.
+
+1483
+
+Exchange Investment Decision Maker ID
+
+Code used to identify the person or algorithm within the investment firm who is responsible for the investment decision.
+
+1488
+
+Execution Decision Maker Type
+
+Classification of the Execution Decision Maker
+
+‘4‘
+
+Short code representing an algo
+
+1489
+
+Investment Decision Maker Type
+
+Classification of the Investment Decision Maker
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+69
+
+1489
+
+Investment Decision Maker Type
+
+‘4‘
+
+Short code representing an algo
+
+1532
+
+Confirmation for value
+
+Confirmation of value
+
+‘1‘
+
+Don’t Confirm value (default)
+
+‘2’
+
+Confirm value
+
+1533
+
+Confirmation for volume
+
+Confirmation of volume
+
+‘1‘
+
+Don’t Confirm volume (default)
+
+‘2’
+
+Confirm volume
+
+1534
+
+Confirmation for collar
+
+Pre-trade Confirmation for collar
+
+‘1‘
+
+Don’t Confirm collar (default)
+
+‘2’
+
+Confirm collar
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+70
+
+Order Modification
+This section is to detail the secured modification of an order.
+
+Modification of simple order:
+Crossing between client and SLE:
+1. Rule 1: In case of the field #44 Total Executed Quantity is filled, we decrease the quantity.
+Example:
+We send an order with field #1 Quantity filled by 1000.
+We modify the Quantity with 1500.
+If a crossing execution with the exchange happens with Quantity 500 then we receive:
+An acknowledgement with quantity = 1500.
+An Executed quantity = 500.
+A Remain Quantity = 1000.
+2. Rule 2: In case of field #37 Remain Quantity is filled then we reject.
+In this particular case specify that we have to inform the remaining supposed quantity to the market before modification.
+Example:
+We send an order with field #1 Quantity filled by 1000.
+We modify the Quantity with 1500.
+If a crossing execution with the exchange happens with Quantity 500, then the SLE sends a Reject.
+3. Rule 3: In case of fields #44 Total Executed Quantity and #37 Remain Quantity are filled then the Rule1 is considered.
+Crossing between the SLE and the Exchange
+When a crossing between the SLE and the Stock Exchange happens, the SLE is notified by the Stock Exchange of events and
+postpones this information to the client.
+This works in this way because the orders aren’t any more in the SLE but at the stock exchange level
+
+Modification of Strategies
+For Strategies modification, only the field #37 Remain Quantity is taken into account.
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+71
+
+Trading API for MIFID II: General fields
+FIS Trading API V3
+FIELD
+
+Name
+
+V5 VALUES/Description
+
+1486
+
+Directed Order
+
+1 = Directed Order; 2= Non Directed Order
+
+1488
+
+Server Execution Decision Maker
+Type
+
+‘ ‘ = Default
+1 = Individual within the firm
+2 = Not used
+3 = Decision made by a client
+4 = Short Code Representing an Algo
+
+1317
+
+Execution Decision Algo ID
+
+String (32)
+Identifier for an algo that makes the Execution Decision
+
+195
+
+Execution Decision ID (Command
+User)
+
+1475
+
+UTI
+
+String (32)
+Server Execution Decision ID
+
+1482
+
+Human or Algo Code responsible for the order execution
+
+String (32)
+Exchange Execution Decision Maker
+ID
+
+Execution Decision Maker Short Code sent to the Trading
+Venue
+
+1489
+
+Server Investment Decision Maker
+Type
+
+‘ ‘ = Default
+1 = Individual within the firm
+2 = Not used
+3 = Decision made by a client
+4 = Short Code Representing an Algo
+
+1340
+
+Investment Decision Algo ID
+
+String (32)
+Identifier for an algo that makes the Investment Decision
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+72
+
+Trading API for MIFID II: General fields
+1474
+
+Server Investment Decision Maker ID
+
+String (32)
+Human or Algo Code responsible for the investment decision
+
+1483
+
+Exchange Investment Decision Maker
+ID
+
+String (32)
+Investment Decision Maker Short Code sent to the Trading
+Venue
+
+1450
+
+Investment Decision Country
+
+String (3)
+
+132
+
+Clearing Account
+
+LEI, DEA user code, National_ID etc.
+
+Firm ID
+
+1470
+
+Client identification code
+
+String (16)
+Also reserved values: NONE; AGGR; PNAL
+
+342
+
+Trading Capacity
+
+New V5 values
+12=DEAL
+11=MTCH
+10=AOTC
+New V3 Values:
+D=DEAL
+M=MTCH
+A=AOTC
+
+1497
+
+User Execution Decision Maker Type
+
+‘ ‘ = Default
+1 = Trader hitting the button (My self)
+2 = Individual within the firm
+3 = Decision made by a client"
+4= Algo
+
+1498
+
+User Execution Decision Maker ID
+
+String (16)
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+73
+
+Trading API for MIFID II: General fields
+1494
+
+User Investment Decision Maker
+Type
+
+‘ ‘ = Default
+1 = Trader hitting the button (My self)
+2 = Individual within the firm
+3 = Decision made by a client"
+4= Algo
+
+1496
+
+User Investment Decision Maker ID
+
+String (16)
+
+1205
+
+Trader Name (VT/ VFT)
+
+String
+
+1490
+
+Client Role Qualifier
+
+‘ ‘ = Default
+1 = Firm or legal entity
+2 = Natural person
+
+1449
+
+Direct Electronic Access
+
+1= trader has DEA
+2= trader does not have DEA
+
+572
+
+MIFID client code type (Market
+Maker) flagging
+
+1 = Market Maker
+
+1414
+
+Order Server Creation Timestamp
+
+Timestamp
+
+1075
+
+AP Message Sending Time
+
+UTC server time
+
+1076
+
+GMT AP message receipt timestamp
+
+exec/ ack/ reject
+
+1077
+
+GMT AP trade timestamp
+
+exec
+
+1078
+
+GMT AP Acknowledge timestamp
+
+ack
+
+1080
+
+GMT AP reject timestamp
+
+reject
+
+1492
+
+Core Command Sending Time
+
+UTC (microseconds)
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+74
+
+Trading API for MIFID II: General fields
+1070
+
+Core Command Receive Time
+
+UTC (microseconds)
+
+868
+
+Firm ID
+
+String
+
+569
+
+Trade Liquidity Indicator
+
+Passive/ Aggressive order flag:
+In V5: 1 = passive; 2= aggressive
+In V3: Varies with exchange
+
+1472
+
+Commodity Risk Indicator
+
+1 True: Indication of a commodity transaction that reduces risk
+2 False: either not a commodity, or it is a commodity but
+doesn't reduce risk.
+
+1481
+
+Waiver Indicator
+
+1 LRGS; 2 RFPT; 3 NLIQ; 4 OILQ; 5 PRIC; 6 SIZE; 7 ILQD;
+
+1484
+
+OTC Post Trade Indicator
+
+1 BENC; 4 LRGS; 10 RFPT; 11 NLIQ; 12 OILQ; 13 PRIC; 6
+SIZE; 5 ILQD etc.
+
+Updates history
+Version
+
+1.0
+
+Date
+
+March 2012
+
+Author
+
+CNG
+
+SLE
+version
+
+10.1
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+75
+
+Version
+
+1.0
+
+Object
+
+Creation from API_WSE v19
+SLE :
+Delete of the OTC and the Quote requests (temporarily: will be added in later version)
+Change of the fields #2 Modality,#3 Price,#4 Validity,#9 Display Quantity,#10 Client Reference, field #19 Clearing Firm
+, #21 Posting Mode, #51 Exchange Trade Number,#53 Trade Type,#81 Memo,#140 Elimination Reason
+Add of the fields: #17 Client Code Type , #24 Compensation Mode 1, #99 Negociation Code,192#Currency, #241
+Work List, #251 Price Increment Type, #294 WorkLimitMaxPrice, #762 Confirmation
+Delete of the fields: #28 Anonymous Flag, #84 NDS Account, #114 Currency,#131 Order Type, #132 NDS Account
+Clearer, #133 Sub Account, #137 Number of Settlement, #138 Settlement Price; #312 Settlement Information; #384
+Trade value
+In request 2019 , delete of the fields #136 Settlement Date, #Number of Settlement, #138 Settlement Price, #140
+Elimination Reason
+Add in the available markets: options and index
+
+Version
+
+2.0
+
+Date
+
+March 2012
+
+Author
+
+CNG
+
+SLE
+version
+
+10.1
+
+Object
+
+SLE :
+Add of the OTC, the Cross and the Quote requests
+Modification of the values of the field #24 Mode Compens 1, #57 Acknowledgement Type
+Modification of the fields #91 Application side, #147 Floor Trader ID, #181 Previous Internal Reference, #484 Order
+Side Qualifier, #762 Confirmation
+Delete warning in description of field #8 Minimum quantity
+Change of the fields #146 Trader Id to #147 Floor Trader Id
+Delete of the fields #50 Execution counterpart, #212 Peak order remaining quantity
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+76
+
+Version
+
+2.1
+
+Date
+
+May 2012
+
+Author
+
+CDE, FOR
+
+SLE version
+
+10.1
+
+SLC version
+
+11.0.100
+
+Object
+
+SLC:
+Add SLC part
+SLE:
+Add mandatory fields in message 2000
+Add for each message whether it is supported by API Messenger.
+Add field #569 Trade Liquidity Provider
+Replace field #113 by field #227 Order Type
+Modification of the description and value of Stock Code, #21 Posting Mode, #24 Compensation Mode 1
+Modification of the description of value D for field #4 Validity
+Add field #1234 IOI ID in OTC request, to answer to an IOI
+
+Version
+
+3.0
+
+Date
+
+July 2012
+
+Author
+
+FOR
+
+SLE version
+
+10.1
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+77
+
+Version
+
+3.0
+
+Object
+
+SLE:
+Field 241 : Change value 3 in D
+Field 306 : Change value -1 in ‘ ‘
+
+Version
+
+3.1
+
+Date
+
+November 2012
+
+Author
+
+SBE
+
+SLE version
+
+10.1
+
+SLC version
+
+11.0.100
+
+Object
+
+SLE:
+Replace field #227 by field #16 Order Type
+
+Version
+
+3.1
+
+Date
+
+November 2012
+
+Author
+
+SBE
+
+SLE version
+
+10.1
+
+SLC version
+
+11.0.100
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+78
+
+Version
+
+3.1
+
+Object
+
+SLE:
+Replace field #227 by field #16 Order Type
+
+Version
+
+3.2
+
+Date
+
+January 2013
+
+Author
+
+SBE
+
+SLE version
+
+10.1
+
+SLC version
+
+12.0.100
+
+Object
+
+SLE:
+Addition of new values in the field #306 Second Client Order Type
+
+Version
+
+3.3
+
+Date
+
+Fabruary 2013
+
+Author
+
+SBE
+
+SLE version
+
+10.1
+
+SLC
+version
+
+12.0.100
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+79
+
+Version
+
+3.3
+
+Object
+
+SLE:
+• Addition of new field #132 to the request On and Off Exchange.to map the field Account at the Exchange
+side.
+• Modification of the field #10: This field is now mapped with the field Client ID at the exchange side.
+• Rename the field #19 from Clearing Firm to Allocation Code
+• Addition of the field #19 Allocation Code to OTCs orders.
+• Deletion of the field #168 Numbank 1
+
+Version
+
+3.4
+
+Date
+
+Mars 2013
+
+Author
+
+SBE
+
+SLE version
+
+10.1
+
+SLC version
+
+12.0.100
+
+Object
+
+Addition of the section “Order Modification”
+
+Version
+
+3.5
+
+Date
+
+November 2013
+
+Author
+
+CNG
+
+SLE version
+
+10.1
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+80
+
+Version
+
+3.5
+
+SLC version
+
+12.0.100
+
+Object
+
+SLC:
+• Modification the list of the markets.
+• Remove the column Pilot or Final version of Stock Watch and CRVR.
+SLE:
+• Modification the list of the markets.
+• Remove the note in Native Order.
+• Remove the note in OTC.
+• Remove the field #82
+• Add the fields #1238, #1267.
+• Modification of the API field of #4, #10.
+• Modification of the field #484 Order Side Qualifier
+
+Version
+
+3.6
+
+Date
+
+January 2014
+
+Author
+
+S. Benhamida
+
+SLE version
+
+10.1.13
+
+SLC version
+
+12.0.100 (starting from 12.0.100.818090)
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+81
+
+Version
+
+3.6
+
+Object
+
+SLC:
+• Add Market #17 to the list of Feed Markets for WSE.
+• Add details to the fields MR: #6, #30 and #100.
+• Add details to the fields CRVR #100 and #101.
+• New format of the field #13 Suspension Indicator
+• Add the value ‘S’ to second character of the field MR #13.
+• Add the following fields to the request MR:
+• #104 Type of value
+• #197 Short sell flag
+• #222 Contract size
+• #227 Accrued interest rate
+• Add the following fields for the request CRVR:
+• #401 Barrier Min Price
+• #402 Barrier Max Price
+SLE:
+• Add Market #17 to the list of Order Markets for WSE.
+• Addition of new values to the field #762 for Order Management
+• More detail for existing values of the field #762.
+
+Version
+
+3.7
+
+Date
+
+Mars 2014
+
+Author
+
+Sabria BENHAMIDA
+
+SLE version
+
+10.1.13
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+82
+
+Version
+
+3.7
+
+SLC version
+
+12.0.100
+
+Object
+
+Modification of the field #13 Exchange number.
+
+Version
+
+3.8
+
+Date
+
+October 2014
+
+Author
+
+Sabria BENHAMIDA
+
+SLE version
+
+10.1.13
+
+SLC version
+
+12.0.100
+
+Object
+
+SLC:
+Addition of the field MR #154 with values.
+Addition of the field CRVR #331 with values.
+SLE:
+Addition of the field #314 in the request 2000 and 2019.
+Modification of value in the field #569.
+
+Version
+
+3.9
+
+Date
+
+November 2014
+
+Author
+
+Sabria BENHAMIDA
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+83
+
+Version
+
+3.9
+
+SLE version
+
+11.1
+
+SLC version
+
+12.0.100
+
+Object
+
+SLE:
+Addition of the field #210 “Alert message Code” This field is available since the version 11.1 of the SLE
+
+Version
+
+4.0
+
+Date
+
+November 2014
+
+Author
+
+Sabria BENHAMIDA
+
+SLE version
+
+11.1
+
+SLC version
+
+12.0.100
+
+Object
+
+SLE:
+Addition of values to the field #17 Client Code Type for OTC orders.
+
+Version
+
+4.1
+
+Date
+
+April 2015
+
+Author
+
+Sabria BENHAMIDA
+
+SLE version
+
+11.1
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+84
+
+Version
+
+4.1
+
+SLC version
+
+12.0.100
+
+Object
+
+SLC:
+Addition of the field MR #53 only for Bonds
+
+Version
+
+4.2
+
+Date
+
+April 2015
+
+Author
+
+Sabria BENHAMIDA
+
+SLE version
+
+11.1
+
+SLC version
+
+12.0.100
+
+Object
+
+SLC:
+Addition of the fields CRVR #342 and #406.
+
+Version
+
+4.3
+
+Date
+
+June 2015
+
+Author
+
+Sabria BENHAMIDA
+
+SLE version
+
+11.1
+
+SLC version
+
+12.0.100
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+85
+
+Version
+
+4.3
+
+Object
+
+SLC:
+Remove the field MR #204.
+Addition of the field MR #89.
+Addition of the field MR #46.
+
+Version
+
+4.4
+
+Date
+
+October 2015
+
+Author
+
+Sabria BENHAMIDA
+
+SLE version
+
+11.1
+
+SLC version
+
+12.0.100
+
+Object
+
+SLC:
+Addition of the field MR#74
+
+Version
+
+4.5
+
+Date
+
+November 2015
+
+Author
+
+Sabria BENHAMIDA
+
+SLE version
+
+11.1
+
+SLC version
+
+12.0.100
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+86
+
+Version
+
+4.5
+
+Object
+
+Addition of the trading field #57 Acknowledgment Type and its domain values.
+
+Version
+
+4.6
+
+Date
+
+January 2016
+
+Author
+
+Sabria BENHAMIDA
+
+SLE version
+
+11.1
+
+SLC version
+
+12.0.100
+
+Object
+
+Addition of the Fields:
+CRVR #283 Security Type Code /Exchange Instrument Type Code
+CRVR #398 Exchange Instrument Type
+CRVR #400 Exchange Instrument Sub Type
+
+Version
+
+4.7
+
+Date
+
+February 2016
+
+Author
+
+Sabria BENHAMIDA
+
+SLE version
+
+11.1
+
+SLC version
+
+12.0.100
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+87
+
+Version
+
+4.7
+
+Object
+
+Updates of the values for the field Liquidity Indicator API V3#569.
+Addition of the Trading fields: #1077, #1078, #1080
+
+Version
+
+4.8
+
+Date
+
+April 2016
+
+Author
+
+Sabria BENHAMIDA
+
+SLE version
+
+11.1
+
+SLC version
+
+12.0.100
+
+Object
+
+Addition of the field CRVR#225 Underlying ISIN
+
+Version
+
+4.9
+
+Date
+
+August 2016
+
+Author
+
+Sabria BENHAMIDA
+
+SLE version
+
+11.1
+
+SLC version
+
+12.0.100
+
+Object
+
+The field MR #74 is removed.
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+88
+
+

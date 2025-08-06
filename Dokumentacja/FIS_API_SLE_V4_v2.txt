@@ -1,0 +1,2825 @@
+FIS SLE API V3/V4
+Version 2.0
+November 2018
+
+www.fisglobal.com
+This document contains confidential and proprietary information of Fidelity Information Services, LLC and/or its affiliates and
+subsidiaries (collectively “FIS”). In limited circumstances this document may be copied and/or distributed to an FIS client and
+its employees on a “need to know” basis in order to fulfill their responsibilities. Any further copying, reproduction, or
+distribution outside of FIS without express written consent is strictly prohibited.
+© 2014 FIS - All rights reserved worldwide.
+
+Preface
+
+1. Revision History
+Version #
+
+Date
+
+Author/Editor
+
+Version/Revision Comments
+
+1.0
+
+March 2017
+
+New SLE API document format
+
+2.0
+
+November
+2018
+
+Sabria
+BENHAMIDA
+Sabria
+BENHAMIDA
+
+Addition of details for Technical fields (see section
+Technical fields).
+Addition of fields from #64 to #136 in the Service Request
+(2700)
+
+2
+
+Preface
+
+3
+
+Contents
+1.
+
+Revision History ............................................................................................................................................ 2
+
+2.
+
+Purpose of the document ............................................................................................................................. 6
+
+3.
+
+Prerequisites .................................................................................................................................................. 6
+
+4.
+
+How is this document organised? ............................................................................................................... 6
+
+5.
+
+Encoding type ................................................................................................................................................ 7
+
+6.
+
+Encoding reference ....................................................................................................................................... 8
+
+7.
+
+Message Format ............................................................................................................................................ 9
+7.1
+
+Message Structure ........................................................................................................................................... 9
+
+7.2
+
+LG .................................................................................................................................................................... 9
+
+7.3
+
+Header ............................................................................................................................................................. 9
+
+7.4
+
+Data ...............................................................................................................................................................10
+
+7.5
+
+Footer.............................................................................................................................................................10
+
+8.
+
+Logical Connection 1100 ............................................................................................................................11
+8.1
+
+Usage.............................................................................................................................................................11
+
+8.2
+
+Format ............................................................................................................................................................11
+
+8.3
+
+Data used in requests ....................................................................................................................................12
+
+9.
+
+Logical disconnection 1102 ........................................................................................................................13
+9.1
+
+Usage.............................................................................................................................................................13
+
+9.2
+
+Format ............................................................................................................................................................13
+
+10.
+
+Order management 2000 .............................................................................................................................14
+
+10.1
+
+Description.................................................................................................................................................14
+
+10.2
+
+Usage ........................................................................................................................................................14
+
+10.3
+
+Format .......................................................................................................................................................14
+
+11.
+
+Real time messages 2017 ...........................................................................................................................15
+
+11.1
+
+Description.................................................................................................................................................15
+
+11.2
+
+Usage ........................................................................................................................................................15
+
+Preface
+11.3
+12.
+
+4
+
+Format .......................................................................................................................................................15
+Unsubscribe request 2018 ..........................................................................................................................16
+
+12.1
+
+Usage ........................................................................................................................................................16
+
+12.2
+
+Format .......................................................................................................................................................16
+
+13.
+
+Simple order real time message 2019 .......................................................................................................17
+
+13.1
+
+Usage ........................................................................................................................................................17
+
+13.2
+
+Format .......................................................................................................................................................17
+
+14.
+
+Order book consultation 2004 ....................................................................................................................18
+
+14.1
+
+Description.................................................................................................................................................18
+
+14.2
+
+Usage ........................................................................................................................................................18
+
+Mechanism for order book consultation. .................................................................................................................18
+.................................................................................................................................................................................18
+14.3
+15.
+
+Format .......................................................................................................................................................18
+Reply consultation 2008 ..............................................................................................................................19
+
+15.1
+
+Description.................................................................................................................................................19
+
+15.2
+
+Usage ........................................................................................................................................................19
+
+16.
+
+Price publicity 2032 .....................................................................................................................................20
+
+16.1
+
+Usage ........................................................................................................................................................20
+
+16.2
+
+Format .......................................................................................................................................................20
+
+17.
+
+Grouped Orders 2040 ..................................................................................................................................21
+
+17.1
+
+Usage ........................................................................................................................................................21
+
+17.2
+
+Format .......................................................................................................................................................21
+
+18.
+
+Grouped Orders Consultation 2044 ...........................................................................................................22
+
+18.1
+
+Usage ........................................................................................................................................................22
+
+18.2
+
+Format .......................................................................................................................................................22
+
+19.
+
+Orders Positioning 2912 .............................................................................................................................23
+
+19.1
+
+Usage ........................................................................................................................................................23
+
+19.2
+
+Format .......................................................................................................................................................23
+
+20.
+
+Service Request 2700-2703 ........................................................................................................................24
+
+20.1
+
+Using .........................................................................................................................................................24
+
+20.2
+
+Format .......................................................................................................................................................24
+
+20.3
+
+Data’s used in Service Requests (2700) ...................................................................................................25
+
+21.
+21.1
+
+Data Used in Several Requests ..................................................................................................................32
+Technical Fields:........................................................................................................................................36
+
+Preface
+
+5
+
+Preface
+
+6
+
+2. Purpose of the document
+This manual is intended for people responsible for programming custom applications connecting to a FIS Valdi
+TCC order routing server (SLE). The purpose of this document is not to detail all the exchange-specific fields; that
+information can be retrieved in the Exchange-specific API documentation.
+
+3. Prerequisites
+General knowledge of API concepts and client-server communication.
+
+4. How is this document organised?
+This document is made up of four sections.
+
+The first section examines the types of variables that can fill these fields.
+The second section explores the message format. It describes the cinematic and the format
+of each requests.
+The third section describes data used in the message format.
+The fourth give the path to know the data and values used in the bitmap.
+
+Preface
+
+5. Encoding type
+In v3 API messages, variables can take one of the following four formats:
+
+v3 Format (“GL format”)
+
+In the v3 format, the first byte indicates the length of the field.
+The length is calculated as following:
+Value + 32 in ASCII
+E.g.length = 7
+First byte = 7 + 32 = 39 = « ‘ »
+
+The rest is the contents of the field coded in ASCII.
+E.g.
+
+value = FTE
+First byte = 3 + 32 = 35 = « # »
+Rest = « FTE »
+So the field = « #FTE »
+
+Warning : This format imply that these fields have a variable length.
+
+ACSII
+
+:
+
+Data field in ASCII format.
+E.g.
+
+02007 coded « 02007 »
+
+Filler
+
+:
+
+Field only contains spaces : ASCII char(32).
+
+GL_C
+
+:
+
+Fixed-length coded over one byte.
+Value + 32
+E.g.
+
+value = 7
+
+Field = 7+32=39= « ’ »
+
+7
+
+Preface
+
+6. Encoding reference
+Internal references generated by the server use an encoded algorithm in base 62.
+These references are unique whatever the SLE that generates it
+
+It is important to note that these references are case-sensitive
+
+8
+
+Preface
+
+9
+
+7. Message Format
+7.1
+
+Message Structure
+
+A v3 API message is an 8-bit ASCII string of variable length which must adhere to the following format:
+
+LG
+
+HEADER
+
+DATA
+
+FOOTER
+
+Where :
+
+LG
+
+: Total message length (including LG, Header, Data, Footer)
+
+Header : General message information
+
+7.2
+
+Data
+
+: Message data
+
+Footer
+
+: End of message
+
+LG
+
+The LG section contains the total length of the message.
+It is coded over 2 bytes: LG[0] and LG[1], where :
+
+LG[0]
+
+: LG%256 (remainder of LG/256)
+
+LG[1]
+
+: LG/256 (integer part of LG/256)
+
+LG = LG[0] + 256 * LG[1]
+
+7.3
+
+Header
+
+The header has a standard fixed length of 32 bytes.
+Remark : The format of the header is the same for all market data and order routing servers versions, only the API
+version field changes.
+For SLE V4, this field must be filled with « »
+
+Type
+
+Width
+
+Field
+
+BINARY
+
+1
+
+ASCII
+
+1
+
+ASCII
+ASCII
+FILLER
+ASCII
+FILLER
+ASCII
+FILLER
+
+5
+5
+5
+5
+2
+5
+3
+
+STX = 2
+API version
+« » for SLE V4
+Request size
+Called logical identifier
+Filler
+Calling Logical identifier
+Filler
+Request Number
+Filler
+
+Preface
+
+7.4
+
+1
+
+Data
+
+All the requests here encompass two kinds of data.
+Data used for the formatting of the request. This data is generic and always present. It forms
+the skeleton of a request.
+This data is described in the section « Data used in a request »
+Data used to send orders and in the reply from the exchanges.
+To learn more about this data, consult the section: «Data used and domain values ».
+
+7.5
+
+Footer
+
+The footer is of a fixed length of 3 bytes and indicates the end of a message. It only contains fillers and binary
+fields.
+Remark : The format of the header is the same for all market data and order routing servers versions.
+
+Type
+
+Width
+
+Field
+
+FILLER
+BINARY
+
+2
+1
+
+Filler
+ETX = 3
+
+Preface
+
+8. Logical Connection 1100
+8.1
+
+Usage
+
+Mechanism for logical Connection.
+
+Connection accepted
+1100
+Client
+
+Server
+1100
+
+Connection Refused
+1100
+Client
+
+Server
+1102
+
+8.2
+
+Format
+Position
+
+Name
+
+Type
+
+Coding Max length
+
+Rep1
+
+QUESTION
+0
+1
+7
+10
+11
+
+User Number
+Password
+Filler
+Key
+Value
+
+NUM
+CHAR
+FILLER
+CHAR
+CHAR
+
+0
+1
+2
+
+User Number
+Password
+Reason
+Key
+Value
+
+NUM
+CHAR
+NUM
+CHAR
+CHAR
+
+ASCII
+ASCII
+ASCII
+GL
+GL
+
+3
+16
+7
+X
+X
+
+Number of key
+time
+
+3
+16
+1
+X
+X
+
+Number of key
+time
+
+REPLY
+ASCII
+ASCII
+GL_C
+GL
+GL
+
+1
+
+Preface
+
+8.3
+
+Data used in requests
+Key Usage
+
+Notes
+QUESTION
+
+2
+
+Extended user number of the modifier of
+the password
+
+1
+
+Does password change authorized
+
+7
+22
+27
+
+Password validity
+Server version
+Unique SLE ID
+
+30
+
+Previous session mode ALL
+
+Up to 999999.
+
+REPLY
+“0” : NO
+“1” : Yes
+Password validity
+Server version
+V3#474 Global SLE reply ID
+This ID is guaranteed to be unique as it
+is a encoded combination of date, time
+and sequence number. SLE restarts,
+compression will not result in the
+possibility of non-unique IDs
+Indicates that the SLE manages the
+value 2 and # for the field previous
+session
+
+1
+
+Preface
+
+1
+
+9. Logical disconnection 1102
+9.1
+
+Usage
+
+Mechanism for logical disconnection.
+
+Voluntary disconnection:
+1102
+Client
+
+Server
+
+Involuntary disconnection
+
+Client
+
+9.2
+
+Server
+
+1102
+
+Format
+Position
+
+Name
+
+Type
+QUESTION
+
+Coding
+
+Max length
+
+0
+1
+
+User Number
+Password
+Filler
+
+INT
+CHAR
+Filler
+
+ASCII
+ASCII
+ASCII
+
+3
+16
+1
+
+0
+1
+2
+
+User Number
+Password
+Reason
+Reject description
+Key
+Value
+
+ASCII
+ASCII
+GL_C
+GL
+GL
+GL
+
+3
+16
+1
+X
+According to
+the length
+
+REPLY
+INT
+CHAR
+INT
+CHAR
+NUM
+CHAR
+
+The couple (Key, Value) is appears twice in the reply of the request 1102.
+
+0
+
+Tag
+
+Value
+
+1
+7
+
+Description of the couple values
+0 : that means user configuration changes are not implemented
+‘YYYYMMDDHHMMSS’ : Date format for the validity of the password
+
+Preface
+
+10. Order management 2000
+10.1 Description
+This request allows sending of basic orders, and to modify or cancel them.
+
+10.2 Usage
+Mechanism to send an order management request
+
+Client
+
+Server
+
+2000
+2019
+2019
+
+SLE sends back ‘n’ requests 2019 which correspond to the number of orders sent in request 2000.
+
+10.3 Format
+Position
+
+Name
+
+B User Number
+C Request Category
+D1 Command
+G Stockcode
+Filler
+Data for order
+
+Type
+Question
+INT
+CHAR
+INT
+CHAR
+FILLER
+INT/CHAR
+
+Coding Max length
+ASCII
+ASCII
+ASCII
+GL
+FILLER
+GL
+
+To know the data of order, see the section: «Data used and domain values ».
+
+The format of request 2000 and 2000 OTC is the same. The difference is inside the bitmap.
+
+5
+1
+1
+X
+10
+X
+
+1
+
+Preface
+
+11. Real time messages 2017
+11.1 Description
+Before sending orders to an exchange, it is better to first check that all types of messages can be received. The
+2017 request allows the client application to obtain them in asynchronous mode.
+This request in from client to server only, and is mandatory to receive SLE unsolicited messages sent in 2019
+requests.
+
+11.2 Usage
+Mechanism for subscription:
+
+2017
+Client
+
+Server
+
+The request allows receiving request 2019.
+
+11.3 Format
+Position
+
+Name
+
+Type
+
+Coding
+
+Max length
+
+Question
+E1 Reply acknowledgement
+E2 Reply reject
+E3 Reply exchange reject
+E4 Reply trade execution
+E5 Reply exchange message
+E6 Default reply type
+E7 Reply inflected message
+Filler
+
+INT
+INT
+INT
+INT
+INT
+INT
+INT
+FILLER
+
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+FILLER
+
+1
+1
+1
+1
+1
+1
+1
+11
+
+1
+
+Preface
+
+12. Unsubscribe request 2018
+12.1 Usage
+Mechanism for Unsubscription
+
+2018
+Client
+
+Server
+
+This request stops the send of requests 2019.
+
+12.2 Format
+Position
+
+Name
+Filler
+
+Type
+Question
+
+Coding
+
+FILLER
+
+FILLER
+
+Max length
+18
+
+1
+
+Preface
+
+13. Simple order real time message 2019
+13.1 Usage
+This request is only in reply.
+
+Client
+
+Server
+
+2019
+2019
+2019
+
+13.2 Format
+
+Position
+
+Name
+
+Type
+
+Coding
+
+Max length
+
+Reply
+A Chaining
+B User number
+C Request category
+D Reply type
+E Index
+F Number of replies
+G Stockcode
+Filler
+Data for order
+
+INT
+INT
+CHAR
+CHAR
+INT
+INT
+CHAR
+FILLER
+INT/CHAR
+
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+GL
+FILLER
+GL
+
+To know the data of order, see the section: «Data used and domain values ».
+
+Important: Field #62 “index” of the section “Data for order” indicates the real index.
+
+1
+5
+1
+1
+6
+5
+X
+10
+X
+
+1
+
+Preface
+
+14. Order book consultation 2004
+14.1 Description
+The 2004 request, when sent from the client to the SLE, asks the SLE for a snapshot of all orders sent on the
+market and their status.
+
+14.2 Usage
+
+Mechanism for order book consultation.
+
+2004
+
+Client
+
+Server
+
+2004
+
+14.3 Format
+Number
+
+Name
+
+Type
+Coding
+QUESTION
+
+B User number
+C Request category
+D2 Question
+Filler
+G Stockcode
+E Index
+F Number of replies
+Filler
+
+INT
+CHAR
+CHAR
+FILLER
+CHAR
+INT
+INT
+FILLER
+
+Max Length
+
+ASCII
+ASCII
+ASCII
+FILLER
+GL
+ASCII
+ASCII
+FILLER
+
+5
+1
+1
+7
+X
+6
+5
+20
+
+ASCII
+ASCII
+ASCII
+FILLER
+ASCII
+ASCII
+GL
+FILLER
+GL
+
+1
+5
+1
+1
+6
+5
+X
+10
+X
+
+REPLY
+A Chaining
+B User Number
+C Request category
+Filler
+E Index
+F Number of replies
+G Stockcode
+Filler
+Data for order
+
+INT
+INT
+CHAR
+FILLER
+INT
+INT
+CHAR
+FILLER
+INT/CHAR
+
+1
+
+Preface
+
+1
+
+15. Reply consultation 2008
+15.1 Description
+The 2008 request, when sent from the client to the SLE, asks the SLE for a snapshot with the corresponding
+messages sent by the SLE for the client orders.
+
+15.2 Usage
+Mechanism for reply consultation.
+2008
+
+Client
+
+Server
+
+2008
+Format
+
+Number
+
+Name
+
+Type
+
+Coding Max length
+
+QUESTION
+B User number
+C Request category
+D2 Question
+E1 Reply acknowledgement
+E2 Reply reject
+E3 Reply exchange reject
+E4 Reply trade execution
+E5 Reply exchange message
+E6 Default reply type
+E7 Reply inflected message
+G Stockcode
+E Index
+F Number of replies
+Filler
+
+INT
+CHAR
+CHAR
+INT
+INT
+INT
+INT
+INT
+INT
+INT
+CHAR
+INT
+INT
+FILLER
+
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+GL
+ASCII
+ASCII
+FILLER
+
+5
+1
+1
+1
+1
+1
+1
+1
+1
+1
+X
+6
+5
+20
+
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+GL
+FILLER
+GL
+
+1
+5
+1
+1
+6
+5
+X
+10
+X
+
+Reply
+A Chaining
+B User Number
+C Request category
+D Reply type
+E Index
+F Number of replies
+G Stockcode
+Filler
+Data for order
+
+INT
+INT
+CHAR
+CHAR
+INT
+INT
+CHAR
+FILLER
+INT/CHAR
+
+To know the data for order, see the section : «Data used and domain values ».
+Important: Field #62 “index” of the section “Data for order” indicates the real index. It is currently ONLY
+available on ‘Reply’, not on ‘Question’. Therefore, in API v3, the message limit index is effectively 999,999
+
+Preface
+
+16. Price publicity 2032
+16.1 Usage
+Mechanism to send an order management
+
+Client
+
+Server
+
+2032
+2019
+2019
+
+16.2 Format
+
+Position
+
+Name
+
+B User Number
+C Request Category
+D1 Command
+G Stockcode
+Filler
+Data for order
+
+Type
+Question
+INT
+CHAR
+INT
+CHAR
+FILLER
+INT/CHAR
+
+Coding Max length
+ASCII
+ASCII
+ASCII
+GL
+FILLER
+GL
+
+To know the data of order, see the section : «Data used and domain values ».
+
+5
+1
+1
+X
+10
+X
+
+2
+
+Preface
+
+2
+
+17. Grouped Orders 2040
+17.1 Usage
+Mechanism for grouped orders.
+
+2040
+
+Client
+
+Server
+
+2019
+2019
+2019
+
+17.2 Format
+
+Position
+
+Name
+
+Type Coding Max length Repetition
+QUESTION
+
+M Message type
+G Default Stockcode
+N1 Number of default data fields
+Filler
+Default data for order
+N2 Number of order
+
+CHAR
+CHAR
+INT
+FILLER
+INT/CHAR
+INT
+
+ASCII
+GL
+ASCII
+FILLER
+GL
+ASCII
+
+1
+X
+5
+5
+X
+3
+
+ASCII
+ASCII
+ASCII
+ASCII
+GL
+ASCII
+FILLER
+GL
+
+5
+5
+1
+1 "Number of
+X order" times
+5
+5
+X
+
+REPLY
+L Length of order
+B User number
+C Request category
+D1 Command
+G Stockcode
+N1 Number of data fields
+Filler
+Data for order
+
+INT
+INT
+CHAR
+INT
+CHAR
+INT
+FILLER
+CHAR
+
+To know the data for order, see the section : «Data used and domain values ».
+
+Preface
+
+2
+
+18. Grouped Orders Consultation 2044
+18.1 Usage
+
+2044
+Client
+
+Server
+2044
+
+18.2 Format
+
+Position
+
+Name
+
+M Message type
+D2 Question
+E Index
+F Number of replies
+N2 Number of orders
+B User number
+C Request category
+G Stockcode
+Filler
+
+Type
+Coding Max length Repetition
+QUESTION
+CHAR
+CHAR
+INT
+INT
+INT
+INT
+CHAR
+CHAR
+FILLER
+
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+GL
+FILLER
+
+1
+1
+6
+5
+5
+5
+1
+X
+10
+
+CHAR
+CHAR
+INT
+INT
+CHAR
+INT
+FILLER
+
+ASCII
+ASCII
+ASCII
+ASCII
+GL
+ASCII
+FILLER
+
+1
+1
+6
+5
+X
+5
+5
+
+Data for order
+
+CHAR
+
+GL
+
+X
+
+N2 Number of order
+B User number
+
+INT
+INT
+
+ASCII
+ASCII
+
+5
+5
+
+C Request category
+D1 Command
+G Stockcode
+N1 Number of data fields
+
+CHAR
+INT
+CHAR
+INT
+
+ASCII
+ASCII
+GL
+ASCII
+
+1
+1
+X "Number of
+order" times
+5
+
+Filler
+
+FILLER
+
+FILLER
+
+5
+
+Data for order
+
+CHAR
+
+GL
+
+X
+
+REPLY
+M Message type
+A Chaining
+E Index
+F Number of replies
+G Stockcode
+N1 Number of data fields
+Filler
+
+To know the data for order, see the section: «Data used and domain values ».
+
+Preface
+
+19. Orders Positioning 2912
+19.1 Usage
+
+Client
+
+2912
+
+Server
+
+2912
+
+19.2 Format
+Name
+
+Type
+Question
+
+Tag
+Value
+
+NUM
+CHAR
+
+Tag
+Value
+
+NUM
+CHAR
+
+Coding
+GL
+GL
+
+Reply
+
+Where tags are defined as:
+
+1
+
+UTI
+
+2
+
+Exchange name
+
+3
+
+Exchange label
+
+4
+
+Buffer length
+
+5
+
+Buffer
+
+GL
+GL
+
+2
+
+Preface
+
+20. Service Request 2700-2703
+20.1 Using
+Mechanism of reply consultation.
+2700
+Client
+
+Server
+2700
+
+Mechanism of subscription.
+
+2701
+Client
+
+Server
+2701
+2703
+
+20.2 Format
+QUESTION (2700 - 2701 - 2702)
+Name
+Tag
+
+Type
+NUM
+
+Value
+
+CHAR
+
+Repeating
+According the length
+
+REPLY (2700 - 2701 - 2703)
+Name
+Tag
+
+Type
+NUM
+
+Value
+
+CHAR
+
+Repeating
+According the length
+
+2
+
+Preface
+
+20.3 Data’s used in Service Requests (2700)
+Key / Value
+
+Key
+
+Q
+Following the key, these fields allow to enter different values
+
+Usage
+
+1
+
+User number (extended)
+
+2
+
+User type
+
+R
+
+Commentary
+Question
+Mandatory
+This field indicates the GL user number which identifie
+the user
+User Number into [0-9999]
+This field gives the origin/type of client
+1 GL Win
+2 Selector
+3 API
+4 Messenger
+
+3
+
+Client version
+
+1
+
+User number (extended)
+
+Reply
+Mandatory
+
+AP Identification
+Exchange Label
+Exchange Name
+Flag for other AP
+
+This field indicates the GL user number which identifie
+the user
+User Number into [0-9999]
+Mandatory
+Mandatory
+Mandatory
+Optional
+
+4
+5
+6
+7
+
+This field gives the kind of client
+0 if it’s the last request
+if another request on AP has to
+1 come
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+
+AP status
+Number of possible traded Glid
+Glid
+UTI rights
+
+Mandatory
+Optional
+Optional
+Optional
+Root or not
+UTI range
+Optional
+In case of user root
+SLE core version
+Mandatory
+AP version
+Mandatory
+SLE core GMT Start Date
+Mandatory
+SLE core GMT Start Time
+Mandatory
+AP GMT purge Date
+Mandatory
+AP GMT purge Time
+Mandatory
+SLE timezone
+Mandatory
+Central system timezone
+Mandatory
+Maximum byte number managed by SLE Mandatory
+Bitmap length
+SELECTOR Version
+Optional
+SLE core and AP OS
+Optional
+
+2
+
+Preface
+24
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+
+Negociation Key
+AP Trigger type
+GLTS Version
+GLTS trigger type
+Last Nia
+AP Trigger exchange message
+GLTS work type
+AP work type
+GLTS trigger available for client
+GLTS work available for client
+GLTS other for client
+AP supported validities
+GLTS supported validities
+CCM version
+GLTS user ID
+Purge in progress
+
+Mandatory
+Kind of trigger orders managed by Exchange
+Optional
+Optional
+Mandatory
+Optional
+Mandatory
+Mandatory
+
+Mandatory
+Mandatory
+Mandatory if a SOM is connected
+Indicates if a purge is in progress
+0 Other
+
+41
+
+Selector status
+
+1 Purge in progress
+Mandatory
+Indicates the Selector status
+0 Selector not connected to SLEV5
+1 Selector connected to SLEV5
+
+42
+
+GLTS status
+
+Mandatory
+0 GLTS not connected to SLEV5
+1 GLTS connected to SLEV5
+
+43
+44
+45
+46
+47
+
+User connect from relay ack type
+User connect from relay action
+GTC validity max days
+CO Tactis
+Quote management
+
+48
+
+Used quote queuing
+
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+
+Quote replace activation
+Connection to market
+Client classification
+Execution criteria
+Split
+Overnight
+Used quote fast
+Number of settlement authorize
+Settlement authorize
+Internal modification
+
+59
+
+Hidden rebbok supported
+
+60
+
+Local order
+
+61
+
+Number of sessions ID
+
+Only for OMS
+1 : No order ID management
+2 : Order ID management
+1: Yes
+Else : No
+
+Indicates if the exchange connection is available
+
+Mandatory
+Mandatory if 57 is present
+Indicates the settlement type authorize on RTS
+Indicates if the SLE manages the new methode for the
+internal modification
+Indicates if the SLE manages the hidden rebook (0 not
+supported - 1 supported)
+Indicates if the SLE manages the local order.
+Mandatory
+Indicates the number of sessions defined into the tag 62;
+Mandatory if tag 62 is present
+
+2
+
+Preface
+62
+
+Session ID
+
+63
+
+Allocation
+
+64
+
+Match / Unmatch
+
+65
+66
+67
+
+Number of connected sessions in group
+Connected sessions in group
+Number of purged sessions in group
+
+Indicates the sessions ID which compose the Group
+session. In the case where a group is defined, this one is
+into the tag 4.
+Indicates that the SLE manages allocation
+Mandatory
+Indicates that the SLE manages the match / unmatch.
+1: Supported
+0: Not supported.
+Indicates the number of sessions in the connected group
+Indicates the sessions connected
+Indicates the number of sessions in the purged group
+
+68
+69
+
+Purged sessions in group
+Manual trade
+
+Indicates the sessions purged
+Indicates if the SLE manages the manual trade
+
+70
+
+Order reparenting
+
+71
+
+Number of Allocation GLID
+
+72
+73
+
+Allocation GLID
+Execution reassign
+
+74
+
+Previous session mode ALL
+
+75
+76
+
+ID of the SLE
+Validity trigger available
+
+77
+
+New purge management
+
+78
+79
+80
+
+Number of 24 hours horodatage
+24 hours horodatage
+LSE - Hidden specification
+
+81
+
+Manual command authorize
+
+82
+
+Native global cancellation
+
+1: Supported
+0: Not supported.
+Indicates it is possible to change the parent order id of
+an order
+1: Supported
+0: Not supported.
+Indicates the number of GLID in the repeating group
+Allocation GLID
+Indicates the GLID where the allocation is authorized
+Indicates that the executions can be reassign
+1: Supported
+0: Not supported.
+Indicates that the SLE manages the value 2 and # for the
+field previous session
+Unique ID for a SLE
+Indicates that the exchange manage the "validity trigger"
+0: Not supported.
+1: Supported
+2: The Exchange manage the Stop, MIT and Trading
+phase trigger validity
+Indicates that the server manage the new workflow for
+the purge
+
+ONLY FOR LSE: Indicates that the Hidden order limit is
+managed by the AP only for
+Day,Preopen,auction,onclose,gtc AND Pegged mid price
+by the AP and not GLTS
+Indiactes that the manual commands are authorize
+1: Supported
+0: Not supported
+A new tag is to be added to the service request to
+indicate whether the market natively supports
+globalcanellation or not. This information will be used by
+the GLWIN to present the user with an option to send a
+global cancelaltion directly to the market.
+
+2
+
+Preface
+
+83
+
+Serialized Command
+
+1: Supported
+0: Not supported
+Indicates that the SLE manages the linked commands
+
+84
+85
+86
+87
+88
+
+Number of client tags
+Client tags
+Force GLTS
+Supported Peg type
+Permissioning and supervision
+
+89
+
+Cancel the remaining child orders
+
+90
+91
+92
+93
+
+Connected Server ID
+Manage order to be confirm
+Cancel child orders
+Combine dealing reporting
+
+94
+
+STP DMA
+
+95
+
+Cross Creation Type
+
+1: Supported
+0: Not supported
+Indicates the number of fields managed for this client
+Field to send for this client
+Indiactest that the field #889 is managed by the server
+Indicates the peg type supported
+Indicates if the permissioning is allowed
+1: Enable
+2: Disable
+Cancel the remaining child orders on the market and the
+Approve and Adjust to the best Reduced Quantity
+used to identify subNode of all connected SLE
+Manage order to be confirm
+possibility to cancel orders on natives SLE
+Ability to combine client orders in dealing/reporting
+status.
+0: Not available
+1: Available to combine
+Allowing user to specify STPDMA flag during order
+combining operation.
+New Cross Management
+
+Cross Update Type
+
+1: One side only
+2: Double side only
+3: Double side and one side supported
+4: Not allowed
+Update Cross Management
+
+Cross Cancel Type
+
+1: One side only
+2: Double side only
+3: Double side and one side supported
+4: Not allowed
+Cancel Cross Management
+
+Audit trail consultation
+Compressed Consultation
+Allow Undo sales complete function
+Trigger in ms
+Slice available
+
+1: One side only
+2: Double side only
+3: Double side and one side supported
+4: Not allowed
+Audit trail consultation request available
+Activate the reply mode on the request 2968
+Need to activate the undo sales complete function
+Trigger in millisecond manages by GLTS
+Indicates the ability to slice orders
+
+96
+
+97
+
+98
+99
+100
+101
+102
+
+103
+
+New Execution Report Management
+
+104
+
+Manage New Index
+
+0: Slice is not available
+1: Slice is available
+Indicates if the SOM manages the news fields 968 and
+969
+Used to Manage new index for DB compression
+0: Manage New Index Not Available
+
+1: Manage New Index Available
+
+2
+
+Preface
+105
+
+Sales Trader Group Indicator
+
+Used for OMS to tell whether or not to treat a group of
+Sales Trader as sales users.
+0: DO NOT manage Manage Sales Trader Group as
+
+Sales Users
+1: Manage Sales Trader Group as Sales Users
+106
+
+Changes Managed by SOM
+
+Indicate the changes that are managed by the server
+2B Dealer Release - Breakdown
+4B On demand - Breakdown
+5A Buffered X minutes - Aggregated
+7A Every shares - Aggregated
+1A Real time - Aggregated
+7B Every shares - Breakdown
+2A Dealer Release - Aggregated
+5B Buffered X minutes - Breakdown
+6A Every X percent - Aggregated
+6B Every X percent - Breakdown
+
+107
+
+Client Generic Field Mgt
+
+1B Real time - Breakdown
+Client Generic Field Management (specific OMS)
+2: Generic Field Cconfig Dict
+1: Client Information
+
+108
+
+109
+
+110
+
+111
+
+112
+
+Extended Handling Instructions
+
+GTT Use Seconds Flag
+
+Personnal Instruction Flag
+
+Auto Combine Order Flag
+
+Client order type
+
+Extended Handling Instructions used for Parent Orders
+1: Yes for Ext. Hand. Instr.
+0: Not to use seconds for GTT (format HH:MM)
+AP to indicate whether the seconds are managed or not
+for GTTs validity.
+1: Supported
+0: Not supported
+To turn on this new personal instruction feature
+1: Turn OFF personal instruction feature
+0: Turn ON personal instruction feature
+Used to combine all DMA orders with the same stock on
+the same side from the same client automatically and
+perform SalesComplete automatically
+1: Allow the auto combination of orders
+0: Auto combination of orders not allowed
+Indicates the type of client order (OMS)
+3: Auto Fill and Booking
+5: OBSOLETE Value (Ex Managed by System)
+4: STP (for new system)
+2: Auto Fill
+1: STP (OMS order going directly to the Stock
+Exchange)
+
+2
+
+Preface
+113
+
+114
+
+115
+
+116
+
+117
+
+118
+
+119
+
+120
+
+SalesOrderSplitFlag
+
+Forward ACK Workflow Flag
+
+New Submit Workflow
+
+Is Visible Flag
+
+Dealer Release Sales Complete Mode
+
+0: Forward ACK Workflow disable
+1: Forward ACK Workflow enable
+Indicate VT that the new Submit workflow feature is
+enabled
+0: New Submit Workflow Disable
+1: New Submit Workflow Enabled
+Indicates whether a client order should be displayed in
+the OMSFE and VT or not. (specific EDA order)
+0: Client Order NOT Visible
+1: Client Order Visible
+Dealer Release Sales Complete Mode (specific
+BOCOM)
+
+Dealer Release Sales Complete
+Allocation Methods
+
+Dealer Release Sales Complete GDO
+Rollover
+
+1: Prebooking
+2: Default Booking Account
+Dealer Release Sales Complete GDO Rollover (specific
+BOCOM)
+
+Consultation Profile
+
+2: Roll Over
+1: Cut Off
+To indicate Order book consultation mode
+
+Last Database Reply Index
+
+122
+
+Match Combo Legs To Client Orders
+
+124
+
+0: Sales Order Splitting disable
+1: Sales Order Splitting enable
+This field indicates VT that the Forward Acknowledgment
+workflow feature is enabled
+
+1: New features enabled
+0: New features disabled
+Dealer Release Sales Complete Allocation Methods
+(specific BOCOM)
+
+121
+
+123
+
+To indicate VT that the Sales order splitting feature is
+enabled
+
+Order Book Consultation
+
+Server Type Connected
+
+0: Order Book Consultation not available
+2: Order Book set for trading
+1: Order Book set for monitoring
+Indicates the last Valdi trading server index stored in the
+reply database file, sent (ie replied) or not.
+Flag to indicate to Match Combo Legs To Client Orders
+0: Match not allowed
+1: Match enable
+Flag to indicate ValdiFIX that the Order Book
+consultation is enabled on Valdi OMS.
+0: Order Book consultation Disabled on Valdi OMS.
+1: Order Book consultation Enabled on Valdi OMS.
+Identify the server type connected to the valdi trader
+station once
+1: Valdi Trader Server connected
+
+3
+
+Preface
+
+125
+
+OMS Spooling
+
+126
+
+Mandatory Sending Fields
+
+127
+
+Strategies Valdi OMS Flag
+
+128
+
+Check Account Amendment Rights Flag
+
+129
+
+Average Price Mode
+
+130
+
+OMS Free Text Available
+
+131
+
+Permit blue windows
+
+132
+
+Date of last database creation
+
+133
+
+servers support GMT date without time
+(to be deprecated)
+Even Bulk Distribution
+
+134
+
+135
+
+136
+
+Microseconds Managment
+
+Cascade Amend
+
+4: Other server connected
+3: GL OMS (CCM) connected
+2: Valdi OMS (SOM V5) connected
+OMS servers support spooling
+0: Spooling disabled
+1: Spooling enabled
+List of mandatory V5 fields to send to OMS Server (filled
+with V5 ID separated by coma), for each new order
+command (SCPB automated STP routing)
+Indicates whether ValdiOMS allows strategy orders or
+not
+0 Strategies NOT available on Valdi OMS
+1 Strategies available on Valdi OMS
+To allow GL OMS to tell VT to use checking of Account
+amendment rights from the existing user bitmap (74).
+0: Account amendment is always allowed in VT
+1: VT will check user permission bit 74 to enable Account
+amendment
+Field to enable or not the Average Price Mode for bulk
+orders
+
+Indicates that the OMS freetext V5 and 9000 is available
+in this server version
+1: Field unavailable
+0: Field available
+This field is used for Valdi Trader to open Blue Windows
+when it is connected to a GLOMS server
+1: Blue Windows enabled
+0: Blue windows disabled
+Trading Server has to sent to client database last
+creation date/time. Format UTC ISO.
+Bit for compatibility to tell clients that the server can
+receive date/time in GMT without a time
+Bulk order distribution mode
+0: There is no Bulk order distrubution mode
+1: Bulk order distrubution mode is activated.
+Use Microsecond for GTT format HHMMSSUUUUUU .
+This field concern the Expiry Time (order with GTT
+validity).
+2: The microseconds are not managed for GTT validity
+orders.
+1: The microseconds are managed for GTT validity
+orders.
+Cascade amend is amend of client order, including child.
+0: Cascade Amend is supported
+1: Cascade Amend not supported
+
+3
+
+Preface
+
+21. Data Used in Several Requests
+0/B
+User Number
+This field indicates the GL user number which identifie the user
+User Number into [0-9999]
+For the request connection/disconnection, User Number is into
+[0-999]
+
+1
+
+2
+
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+
+Password
+This field is used to authenticate access
+
+Reason
+This field indicates the reason for the refusal and respects
+following modulo rules.
+Incorrect password
+No more space in logical connection database
+Incorrect format of logical connection request
+Forbidden user number
+Unknown user number
+Forbidden brooker number
+Unknown brooker number
+User already connected
+Connection trouble
+Unknown receiver
+
+Reason can be equal to
+<10 Message from P3
+>=
+10
+Message from SLE
+and
+<20
+>=20
+and
+Message from SLC
+<30
+>=30
+and
+Message from GL Net
+<40
+>=40
+and
+Message from Selector
+<50
+For the SLE V5, other reasons exist. These reasons are between
+[100-110]
+100
+101
+102
+103
+
+Password expired
+New password rejected : used to recently
+New password rejected : too short
+New password rejected : identical to the user
+
+3
+
+Preface
+104
+105
+106
+107
+111
+
+C
+A
+C
+D
+F
+O
+S
+
+D1
+0
+1
+2
+4
+5
+6
+8
+A
+
+New password rejected : should contain at least one digit
+and one letter
+New password rejected : more than 3 successive identical
+characters
+Sender is not allowed to modify this password
+Max number of attempts reached
+No API licence
+
+Request category
+This field indicates the order type
+Trade Out The counter
+Combined order
+Price request
+Market maker
+Single order
+Care Order
+
+Command
+This field gives the type of the command
+New order
+Cancel order
+Update order
+Cancel execution
+Overall cancel
+Release order
+M.I.T
+Overall cancel order
+
+G
+
+Stockcode
+This field identifies the instrument
+
+E1
+0
+1
+
+Reply acknowledgement
+Subscription of acknowledgement
+No
+Yes
+
+E2
+
+Reply reject
+
+0
+1
+
+No
+Yes
+
+E3
+
+Reply exchange reject
+Subscription of exchange reject
+
+Subscription of reject
+
+3
+
+Preface
+0
+1
+
+No
+Yes
+
+E4
+
+Reply trade execution
+Subscription of trade execution
+No
+Yes
+
+0
+1
+
+E5
+0
+1
+
+Reply exchange message
+Subscription of exchange message
+No
+Yes
+
+E6
+
+Default reply type
+Always filled with “0”
+
+E7
+
+Reply inflected messages
+Subscription of inflected message
+No
+Yes
+
+0
+1
+
+A
+0
+1
+
+D
+A
+C
+G
+R
+J
+L
+
+E
+
+Chaining
+This field indicates if the response is the last one
+Last one
+Otherwise
+
+Reply type
+This field indicates the reply type
+Exchange acknowledgement
+Exchange rejection
+FIS Valdi TCC rejection
+Trade execution
+Exchange message number
+Inflected message
+
+Index
+This field indicates the index of the response in the SLE
+Database
+
+3
+
+Preface
+F
+
+Number of replies
+This field indicates the number of replies
+
+D2
+
+Question
+This field descibes the type of consultation
+N responses starting from index (index included)
+N responses starting from the beginning
+N responses before the index
+N responses after the index
+Last response
+
+1
+2
+3
+4
+6
+
+M
+Q
+O
+L
+C
+X
+
+Message type
+This field indicates the type of order created
+Quote
+Simple order
+Linked order
+Combined order
+Cross order
+
+N1
+
+Number of default data fields
+This field indicates the number of the last field coded
+
+N2
+
+Number of order
+This field indicates the number of order
+
+L
+
+Length of order
+This field indicates the length of the order
+
+3
+
+Preface
+
+3
+
+21.1 Technical Fields:
+All the following fields are technical fields and they are not part of the SLE bitmap. It is only present to allow FIS /
+FIX mapping.
+
+Technical field
+Number (FID)
+20005
+20006
+20014
+
+Technical field Label
+
+DESCRIPTION
+
+Index Server
+relatedOrder
+commandIdSeed
+
+20015
+
+orderIdSeed
+
+20016
+20019
+
+prvCommand
+cmdStatus
+
+20021
+20022
+20023
+20024
+20025
+20058
+
+Mnemo
+GLID
+Type Message
+Class Order
+Uti Number
+eventIdSeed
+
+20059
+
+recordTimeStamp
+
+The index of the record in the database
+The index of the related order in the order database
+An incremental counter of cmd Seed. It is assigned to each
+command when it’s created.
+An incremental counter of order Seed. It is assigned to each
+order when it’s created.
+The previous command if exists (default -1)
+Indicates if the command is closed or not (SLE consider a
+command closed when it receives an ACK or reject …)
+mnemo
+GLID
+Message Type
+Class Order
+User number
+An incremental counter common to cmd/reply databases. It is
+assigned to each record when it is created and it allows an
+absolute audit of the activity.
+Recording time
+
+Data used and domain values
+The SLE v3 API uses various data and domain values that will vary depending on the exchange that your API
+application connects to. In order to get exchange-specific information about those fields, please download the
+exchange specific API documents on FIS portal at:
+https://portal.sungardglobaltrading.com/intranet/valdi/displayGlApi
+
+

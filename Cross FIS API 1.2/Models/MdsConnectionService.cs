@@ -1,0 +1,325 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+
+namespace Cross_FIS_API_1._2.Models
+{
+    public class MarketData
+    {
+        public string Glid { get; set; } = string.Empty;
+        public decimal BidPrice { get; set; }
+        public long BidSize { get; set; }
+        public decimal AskPrice { get; set; }
+        public long AskSize { get; set; }
+        public decimal LastPrice { get; set; }
+        public long LastSize { get; set; }
+        public long Volume { get; set; }
+    }
+
+    public class MdsConnectionService
+    {
+        private TcpClient? _tcpClient;
+        private NetworkStream? _stream;
+
+        private const byte Stx = 2;
+        private const byte Etx = 3;
+        private const int HeaderLength = 32;
+        private const int FooterLength = 3;
+
+        public bool IsConnected => _tcpClient?.Connected ?? false;
+        public event Action<List<Instrument>>? InstrumentsReceived;
+        public event Action<MarketData>? MarketDataUpdate;
+
+        public async Task<bool> ConnectAndLoginAsync(string ipAddress, int port, string user, string password, string node, string subnode)
+        {
+            if (IsConnected) Disconnect();
+
+            try
+            {
+                _tcpClient = new TcpClient();
+                await _tcpClient.ConnectAsync(ipAddress, port);
+                if (!_tcpClient.Connected) return false;
+
+                _stream = _tcpClient.GetStream();
+
+                var clientId = Encoding.ASCII.GetBytes("FISAPICLIENT    ");
+                await _stream.WriteAsync(clientId, 0, clientId.Length);
+
+                byte[] loginRequest = BuildLoginRequest(user, password, node, subnode);
+                await _stream.WriteAsync(loginRequest, 0, loginRequest.Length);
+
+                var buffer = new byte[1024];
+                var bytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length);
+                if (bytesRead > 0)
+                {
+                    bool loginSuccess = VerifyLoginResponse(buffer, bytesRead);
+                    if (loginSuccess)
+                    {
+                        _ = Task.Run(ListenForMessages);
+                        return true;
+                    }
+                }
+                
+                Disconnect();
+                return false;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"MDS Connection failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Disconnect();
+                return false;
+            }
+        }
+
+        private async Task ListenForMessages()
+        {
+            if (_stream == null) return;
+            var buffer = new byte[32000];
+            while (IsConnected)
+            {
+                try
+                {
+                    if (_stream.DataAvailable)
+                    {
+                        var bytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length);
+                        if (bytesRead > 0)
+                        {
+                            ProcessIncomingMessage(buffer, bytesRead);
+                        }
+                    }
+                    await Task.Delay(50);
+                }
+                catch
+                {
+                    Disconnect();
+                }
+            }
+        }
+
+        public void Disconnect()
+        {
+            if (_tcpClient == null) return;
+            _stream?.Close();
+            _tcpClient?.Close();
+            _tcpClient = null;
+            _stream = null;
+        }
+
+        public async Task RequestAllInstrumentsAsync()
+        {
+            if (!IsConnected || _stream == null) return;
+
+            int[] exchanges = { 40, 330, 331, 332 };
+            int[] markets = { 1, 2, 3, 4, 5, 9, 16, 17, 20 };
+
+            foreach (var exchange in exchanges)
+            {
+                foreach (var market in markets)
+                {
+                    string glid = $"{exchange:D4}00{market:D3}000";
+                    byte[] dictionaryRequest = BuildDictionaryRequest(glid);
+                    await _stream.WriteAsync(dictionaryRequest, 0, dictionaryRequest.Length);
+                    await Task.Delay(100);
+                }
+            }
+        }
+
+        public async Task SubscribeToInstrumentAsync(string glid)
+        {
+            if (!IsConnected || _stream == null) return;
+            byte[] subscriptionRequest = BuildStockWatchRequest(glid, 1000);
+            await _stream.WriteAsync(subscriptionRequest, 0, subscriptionRequest.Length);
+        }
+
+        public async Task UnsubscribeFromInstrumentAsync(string glid)
+        {
+            if (!IsConnected || _stream == null) return;
+            byte[] unsubscriptionRequest = BuildStockWatchRequest(glid, 1002);
+            await _stream.WriteAsync(unsubscriptionRequest, 0, unsubscriptionRequest.Length);
+        }
+
+        private void ProcessIncomingMessage(byte[] response, int length)
+        {
+            var stxPos = Array.IndexOf(response, Stx);
+            if (stxPos == -1) return;
+
+            string requestNumberStr = Encoding.ASCII.GetString(response, stxPos + 24, 5);
+            if (int.TryParse(requestNumberStr, out int requestNumber))
+            {
+                switch (requestNumber)
+                {
+                    case 5108: // Dictionary response
+                        ProcessDictionaryResponse(response, length, stxPos);
+                        break;
+                    case 1000: // Stock watch update
+                    case 1001:
+                    case 1003:
+                        ProcessMarketDataUpdate(response, length, stxPos);
+                        break;
+                }
+            }
+        }
+
+        private void ProcessMarketDataUpdate(byte[] response, int length, int stxPos)
+        {
+            try
+            {
+                int position = stxPos + HeaderLength;
+                string glidAndSymbol = DecodeField(response, ref position);
+                if (string.IsNullOrEmpty(glidAndSymbol)) return;
+
+                var marketData = new MarketData { Glid = glidAndSymbol.Length >= 12 ? glidAndSymbol.Substring(0, 12) : glidAndSymbol };
+
+                // This is a simplified parser. A full implementation would use a bitmap.
+                // For now, we assume a fixed field order for demonstration.
+                marketData.BidSize = long.Parse(DecodeField(response, ref position));
+                marketData.BidPrice = decimal.Parse(DecodeField(response, ref position));
+                marketData.AskPrice = decimal.Parse(DecodeField(response, ref position));
+                marketData.AskSize = long.Parse(DecodeField(response, ref position));
+                marketData.LastPrice = decimal.Parse(DecodeField(response, ref position));
+                marketData.LastSize = long.Parse(DecodeField(response, ref position));
+                // ... skipping some fields ...
+                position += (1 + (response[position] - 32)); // last trade time
+                position += (1 + (response[position] - 32)); // percentage variation
+                marketData.Volume = long.Parse(DecodeField(response, ref position));
+
+                MarketDataUpdate?.Invoke(marketData);
+            }
+            catch { /* Silently fail on parsing error */ }
+        }
+
+        private void ProcessDictionaryResponse(byte[] response, int length, int stxPos)
+        {
+            var instruments = new List<Instrument>();
+            try
+            {
+                int position = stxPos + HeaderLength;
+                byte chaining = response[position++];
+                int numberOfGlid = int.Parse(Encoding.ASCII.GetString(response, position, 5));
+                position += 5;
+
+                for (int i = 0; i < numberOfGlid; i++)
+                {
+                    var instrument = new Instrument();
+                    string glidAndSymbol = DecodeField(response, ref position);
+                    if (glidAndSymbol.Length >= 12)
+                    {
+                        instrument.Glid = glidAndSymbol.Substring(0, 12);
+                        instrument.Symbol = glidAndSymbol.Substring(12);
+                    }
+                    instrument.Name = DecodeField(response, ref position);
+                    DecodeField(response, ref position); // Skip local code
+                    instrument.ISIN = DecodeField(response, ref position);
+                    DecodeField(response, ref position); // Skip group number
+
+                    if (!string.IsNullOrEmpty(instrument.Symbol))
+                    {
+                        instruments.Add(instrument);
+                    }
+                }
+
+                if (instruments.Any())
+                {
+                    InstrumentsReceived?.Invoke(instruments);
+                }
+            }
+            catch { /* Silently fail on parsing error */ }
+        }
+
+        #region Message Builders
+        private byte[] BuildStockWatchRequest(string glid, int requestNumber)
+        {
+            var dataPayload = EncodeField(glid);
+            return BuildMessage(dataPayload, requestNumber, "5000", "4000");
+        }
+
+        private byte[] BuildDictionaryRequest(string glid)
+        {
+            var dataBuilder = new List<byte>();
+            dataBuilder.AddRange(Encoding.ASCII.GetBytes("00001"));
+            dataBuilder.AddRange(EncodeField(glid));
+            var dataPayload = dataBuilder.ToArray();
+            return BuildMessage(dataPayload, 5108, "5000", "4000"); 
+        }
+
+        private byte[] BuildLoginRequest(string user, string password, string node, string subnode)
+        {
+            var dataBuilder = new List<byte>();
+            dataBuilder.AddRange(Encoding.ASCII.GetBytes(user.PadLeft(3, '0')));
+            dataBuilder.AddRange(Encoding.ASCII.GetBytes(password.PadRight(16, ' ')));
+            dataBuilder.AddRange(Encoding.ASCII.GetBytes(new string(' ', 7)));
+            dataBuilder.AddRange(EncodeField("15"));
+            dataBuilder.AddRange(EncodeField("V5"));
+            dataBuilder.AddRange(EncodeField("26"));
+            dataBuilder.AddRange(EncodeField(user));
+            var dataPayload = dataBuilder.ToArray();
+            return BuildMessage(dataPayload, 1100, node, subnode);
+        }
+
+        private byte[] BuildMessage(byte[] dataPayload, int requestNumber, string node, string subnode)
+        {
+            int dataLength = dataPayload.Length;
+            int totalLength = 2 + HeaderLength + dataLength + FooterLength;
+            var message = new byte[totalLength];
+
+            using (var ms = new MemoryStream(message))
+            using (var writer = new BinaryWriter(ms))
+            {
+                writer.Write((byte)(totalLength % 256));
+                writer.Write((byte)(totalLength / 256));
+                writer.Write(Stx);
+                writer.Write((byte)'0');
+                writer.Write(Encoding.ASCII.GetBytes((HeaderLength + dataLength + FooterLength).ToString().PadLeft(5, '0')));
+                writer.Write(Encoding.ASCII.GetBytes(subnode.PadLeft(5, '0')));
+                writer.Write(Encoding.ASCII.GetBytes(new string(' ', 5)));
+                writer.Write(Encoding.ASCII.GetBytes("00000"));
+                writer.Write(Encoding.ASCII.GetBytes(new string(' ', 2)));
+                writer.Write(Encoding.ASCII.GetBytes(requestNumber.ToString().PadLeft(5, '0')));
+                writer.Write(Encoding.ASCII.GetBytes(new string(' ', 3)));
+                writer.Write(dataPayload);
+                writer.Write(Encoding.ASCII.GetBytes(new string(' ', 2)));
+                writer.Write(Etx);
+            }
+            return message;
+        }
+
+        private byte[] EncodeField(string value)
+        {
+            var valueBytes = Encoding.ASCII.GetBytes(value);
+            var encoded = new byte[valueBytes.Length + 1];
+            encoded[0] = (byte)(valueBytes.Length + 32);
+            Array.Copy(valueBytes, 0, encoded, 1, valueBytes.Length);
+            return encoded;
+        }
+
+        private string DecodeField(byte[] data, ref int position)
+        {
+            try
+            {
+                if (position >= data.Length) return string.Empty;
+                var fieldLength = data[position] - 32;
+                if (fieldLength <= 0 || position + 1 + fieldLength > data.Length) return string.Empty;
+                var value = Encoding.ASCII.GetString(data, position + 1, fieldLength);
+                position += 1 + fieldLength;
+                return value;
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
+        private bool VerifyLoginResponse(byte[] response, int length)
+        {
+            if (length < HeaderLength + 2) return false;
+            string requestNumberStr = Encoding.ASCII.GetString(response, 26, 5);
+            return requestNumberStr == "01100";
+        }
+        #endregion
+    }
+}

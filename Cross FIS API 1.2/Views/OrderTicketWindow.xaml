@@ -1,0 +1,69 @@
+<Window x:Class="Cross_FIS_API_1._2.Views.OrderTicketWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Order Ticket" Height="450" Width="400"
+        WindowStartupLocation="CenterOwner" Closing="Window_Closing">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Instrument Info -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,10">
+            <TextBlock Text="{Binding SelectedInstrument.Name}" FontSize="18" FontWeight="Bold"/>
+            <TextBlock Text="{Binding SelectedInstrument.ISIN}" FontSize="12" Foreground="Gray"/>
+        </StackPanel>
+
+        <!-- Market Data -->
+        <GroupBox Grid.Row="1" Header="Market Data">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Margin="5">
+                    <TextBlock Text="Bid Size"/>
+                    <TextBlock Text="{Binding BidSize}" FontSize="16" FontWeight="Bold"/>
+                    <TextBlock Text="Bid Price" Margin="0,5,0,0"/>
+                    <TextBlock Text="{Binding BidPrice}" FontSize="16" FontWeight="Bold" Foreground="Blue"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Margin="5">
+                    <TextBlock Text="Ask Size"/>
+                    <TextBlock Text="{Binding AskSize}" FontSize="16" FontWeight="Bold"/>
+                    <TextBlock Text="Ask Price" Margin="0,5,0,0"/>
+                    <TextBlock Text="{Binding AskPrice}" FontSize="16" FontWeight="Bold" Foreground="Red"/>
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+
+        <!-- Order Entry -->
+        <GroupBox Grid.Row="2" Header="Order Entry">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Margin="5">
+                    <TextBlock Text="Quantity:"/>
+                    <TextBox Text="{Binding OrderQuantity}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Margin="5">
+                    <TextBlock Text="Price:"/>
+                    <TextBox Text="{Binding OrderPrice}"/>
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+
+        <!-- Action Buttons -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Button Content="BUY" Command="{Binding BuyCommand}" Background="Blue" Foreground="White" FontWeight="Bold" Width="100" Height="40" Margin="10"/>
+            <Button Content="SELL" Command="{Binding SellCommand}" Background="Red" Foreground="White" FontWeight="Bold" Width="100" Height="40" Margin="10"/>
+        </StackPanel>
+    </Grid>
+</Window>
