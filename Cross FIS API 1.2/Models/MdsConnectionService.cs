@@ -25,6 +25,8 @@ namespace Cross_FIS_API_1._2.Models
     {
         private TcpClient? _tcpClient;
         private NetworkStream? _stream;
+        private string _node = string.Empty; // Store node for session context
+        private string _subnode = string.Empty; // Store subnode for session context
 
         private const byte Stx = 2;
         private const byte Etx = 3;
@@ -47,10 +49,14 @@ namespace Cross_FIS_API_1._2.Models
 
                 _stream = _tcpClient.GetStream();
 
+                // Store node and subnode for subsequent messages
+                _node = node;
+                _subnode = subnode;
+
                 var clientId = Encoding.ASCII.GetBytes("FISAPICLIENT    ");
                 await _stream.WriteAsync(clientId, 0, clientId.Length);
 
-                byte[] loginRequest = BuildLoginRequest(user, password, node, subnode);
+                byte[] loginRequest = BuildLoginRequest(user, password);
                 await _stream.WriteAsync(loginRequest, 0, loginRequest.Length);
 
                 var buffer = new byte[1024];
@@ -207,19 +213,40 @@ namespace Cross_FIS_API_1._2.Models
                 {
                     var instrument = new Instrument();
                     string glidAndSymbol = DecodeField(response, ref position);
-                    if (glidAndSymbol.Length >= 12)
+                    if (!string.IsNullOrEmpty(glidAndSymbol))
                     {
-                        instrument.Glid = glidAndSymbol.Substring(0, 12);
-                        instrument.Symbol = glidAndSymbol.Substring(12);
-                    }
-                    instrument.Name = DecodeField(response, ref position);
-                    DecodeField(response, ref position); // Skip local code
-                    instrument.ISIN = DecodeField(response, ref position);
-                    DecodeField(response, ref position); // Skip group number
+                        if (glidAndSymbol.Length >= 12)
+                        {
+                            instrument.Glid = glidAndSymbol.Substring(0, 12);
+                            instrument.Symbol = glidAndSymbol.Substring(12);
+                        }
+                        else
+                        {
+                            instrument.Glid = glidAndSymbol;
+                            instrument.Symbol = glidAndSymbol;
+                        }
 
-                    if (!string.IsNullOrEmpty(instrument.Symbol))
-                    {
-                        instruments.Add(instrument);
+                        // NOWA WALIDACJA GLID
+                        if (!string.IsNullOrWhiteSpace(instrument.Glid) && instrument.Glid.All(char.IsDigit))
+                        {
+                            instrument.Name = DecodeField(response, ref position);
+                            DecodeField(response, ref position); // Skip local code
+                            instrument.ISIN = DecodeField(response, ref position);
+                            DecodeField(response, ref position); // Skip group number
+
+                            if (!string.IsNullOrEmpty(instrument.Symbol))
+                            {
+                                instruments.Add(instrument);
+                            }
+                        }
+                        else
+                        {
+                            // Skip remaining fields for this invalid instrument
+                            DecodeField(response, ref position); // Name
+                            DecodeField(response, ref position); // Local code
+                            DecodeField(response, ref position); // ISIN
+                            DecodeField(response, ref position); // Group number
+                        }
                     }
                 }
 
@@ -235,7 +262,7 @@ namespace Cross_FIS_API_1._2.Models
         private byte[] BuildStockWatchRequest(string glid, int requestNumber)
         {
             var dataPayload = EncodeField(glid);
-            return BuildMessage(dataPayload, requestNumber, "5000", "4000");
+            return BuildMessage(dataPayload, requestNumber);
         }
 
         private byte[] BuildDictionaryRequest(string glid)
@@ -244,10 +271,10 @@ namespace Cross_FIS_API_1._2.Models
             dataBuilder.AddRange(Encoding.ASCII.GetBytes("00001"));
             dataBuilder.AddRange(EncodeField(glid));
             var dataPayload = dataBuilder.ToArray();
-            return BuildMessage(dataPayload, 5108, "5000", "4000"); 
+            return BuildMessage(dataPayload, 5108); 
         }
 
-        private byte[] BuildLoginRequest(string user, string password, string node, string subnode)
+        private byte[] BuildLoginRequest(string user, string password)
         {
             var dataBuilder = new List<byte>();
             dataBuilder.AddRange(Encoding.ASCII.GetBytes(user.PadLeft(3, '0')));
@@ -258,10 +285,10 @@ namespace Cross_FIS_API_1._2.Models
             dataBuilder.AddRange(EncodeField("26"));
             dataBuilder.AddRange(EncodeField(user));
             var dataPayload = dataBuilder.ToArray();
-            return BuildMessage(dataPayload, 1100, node, subnode);
+            return BuildMessage(dataPayload, 1100);
         }
 
-        private byte[] BuildMessage(byte[] dataPayload, int requestNumber, string node, string subnode)
+        private byte[] BuildMessage(byte[] dataPayload, int requestNumber)
         {
             int dataLength = dataPayload.Length;
             int totalLength = 2 + HeaderLength + dataLength + FooterLength;
@@ -275,7 +302,7 @@ namespace Cross_FIS_API_1._2.Models
                 writer.Write(Stx);
                 writer.Write((byte)'0');
                 writer.Write(Encoding.ASCII.GetBytes((HeaderLength + dataLength + FooterLength).ToString().PadLeft(5, '0')));
-                writer.Write(Encoding.ASCII.GetBytes(subnode.PadLeft(5, '0')));
+                writer.Write(Encoding.ASCII.GetBytes(_subnode.PadLeft(5, '0'))); // Use stored subnode
                 writer.Write(Encoding.ASCII.GetBytes(new string(' ', 5)));
                 writer.Write(Encoding.ASCII.GetBytes("00000"));
                 writer.Write(Encoding.ASCII.GetBytes(new string(' ', 2)));
@@ -323,3 +350,4 @@ namespace Cross_FIS_API_1._2.Models
         #endregion
     }
 }
+

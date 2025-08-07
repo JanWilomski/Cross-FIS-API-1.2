@@ -23,6 +23,8 @@ namespace Cross_FIS_API_1._2.Models
     {
         private TcpClient? _tcpClient;
         private NetworkStream? _stream;
+        private string _node = string.Empty; // Store node for session context
+        private string _subnode = string.Empty; // Store subnode for session context
 
         private const byte Stx = 2;
         private const byte Etx = 3;
@@ -43,10 +45,14 @@ namespace Cross_FIS_API_1._2.Models
 
                 _stream = _tcpClient.GetStream();
 
+                // Store node and subnode for subsequent messages
+                _node = node;
+                _subnode = subnode;
+
                 var clientId = Encoding.ASCII.GetBytes("FISAPICLIENT    ");
                 await _stream.WriteAsync(clientId, 0, clientId.Length);
 
-                byte[] loginRequest = BuildLoginRequest(user, password, node, subnode);
+                byte[] loginRequest = BuildLoginRequest(user, password);
                 await _stream.WriteAsync(loginRequest, 0, loginRequest.Length);
 
                 var buffer = new byte[1024];
@@ -56,7 +62,7 @@ namespace Cross_FIS_API_1._2.Models
                     bool loginSuccess = VerifyLoginResponse(buffer, bytesRead);
                     if (loginSuccess)
                     {
-                        byte[] subscriptionRequest = BuildRealTimeRepliesRequest(node, subnode);
+                        byte[] subscriptionRequest = BuildRealTimeRepliesRequest();
                         await _stream.WriteAsync(subscriptionRequest, 0, subscriptionRequest.Length);
                         
                         _ = Task.Run(ListenForMessages);
@@ -118,7 +124,6 @@ namespace Cross_FIS_API_1._2.Models
         private byte[] BuildNewOrderRequest(OrderParameters order)
         {
             var dataBuilder = new List<byte>();
-            // This is a simplified builder. A full implementation would use a bitmap for optional fields.
             dataBuilder.AddRange(Encoding.ASCII.GetBytes("O")); // C: Request Category (Order)
             dataBuilder.AddRange(Encoding.ASCII.GetBytes("0")); // D1: Command (New)
             dataBuilder.AddRange(EncodeField(order.Glid)); // G: Stock Code (GLID)
@@ -132,11 +137,10 @@ namespace Cross_FIS_API_1._2.Models
             dataBuilder.AddRange(EncodeField("D")); // 4: Validity (Day)
 
             var dataPayload = dataBuilder.ToArray();
-            // Node/Subnode are taken from the established session, placeholders here.
-            return BuildMessage(dataPayload, 2000, "24300", "14300");
+            return BuildMessage(dataPayload, 2000);
         }
 
-        private byte[] BuildLoginRequest(string user, string password, string node, string subnode)
+        private byte[] BuildLoginRequest(string user, string password)
         {
             var dataBuilder = new List<byte>();
             dataBuilder.AddRange(Encoding.ASCII.GetBytes(user.PadLeft(3, '0')));
@@ -147,10 +151,10 @@ namespace Cross_FIS_API_1._2.Models
             dataBuilder.AddRange(EncodeField("26"));
             dataBuilder.AddRange(EncodeField(user));
             var dataPayload = dataBuilder.ToArray();
-            return BuildMessage(dataPayload, 1100, node, subnode);
+            return BuildMessage(dataPayload, 1100);
         }
 
-        private byte[] BuildRealTimeRepliesRequest(string node, string subnode)
+        private byte[] BuildRealTimeRepliesRequest()
         {
             var dataBuilder = new List<byte>();
             dataBuilder.Add((byte)'1');
@@ -162,10 +166,10 @@ namespace Cross_FIS_API_1._2.Models
             dataBuilder.Add((byte)'0');
             dataBuilder.AddRange(Encoding.ASCII.GetBytes(new string(' ', 11)));
             var dataPayload = dataBuilder.ToArray();
-            return BuildMessage(dataPayload, 2017, node, subnode);
+            return BuildMessage(dataPayload, 2017);
         }
 
-        private byte[] BuildMessage(byte[] dataPayload, int requestNumber, string node, string subnode)
+        private byte[] BuildMessage(byte[] dataPayload, int requestNumber)
         {
             int dataLength = dataPayload.Length;
             int totalLength = 2 + HeaderLength + dataLength + FooterLength;
@@ -179,7 +183,7 @@ namespace Cross_FIS_API_1._2.Models
                 writer.Write(Stx);
                 writer.Write((byte)'0');
                 writer.Write(Encoding.ASCII.GetBytes((HeaderLength + dataLength + FooterLength).ToString().PadLeft(5, '0')));
-                writer.Write(Encoding.ASCII.GetBytes(subnode.PadLeft(5, '0')));
+                writer.Write(Encoding.ASCII.GetBytes(_subnode.PadLeft(5, '0'))); // Use stored subnode
                 writer.Write(Encoding.ASCII.GetBytes(new string(' ', 5)));
                 writer.Write(Encoding.ASCII.GetBytes("00000"));
                 writer.Write(Encoding.ASCII.GetBytes(new string(' ', 2)));
