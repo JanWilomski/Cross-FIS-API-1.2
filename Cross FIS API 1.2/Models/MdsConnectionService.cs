@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -64,7 +65,7 @@ namespace Cross_FIS_API_1._2.Models
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"MDS Connection failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Debug.WriteLine($"MDS Connection failed: {ex.Message}");
                 Disconnect();
                 return false;
             }
@@ -88,8 +89,9 @@ namespace Cross_FIS_API_1._2.Models
                     }
                     await Task.Delay(50);
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Debug.WriteLine($"Error in MDS ListenForMessages: {ex.Message}");
                     Disconnect();
                 }
             }
@@ -146,7 +148,9 @@ namespace Cross_FIS_API_1._2.Models
                         case 5108: // Dictionary response
                             ProcessDictionaryResponse(response, length, stxPos);
                             break;
-                        case 1000: // StockWatch response
+                        case 1000: 
+                            ProcessInstrumentDetailsResponse(response, length, stxPos);
+                            break;
                         case 1001:
                         case 1003:
                             ProcessInstrumentDetailsResponse(response, length, stxPos);
@@ -190,7 +194,18 @@ namespace Cross_FIS_API_1._2.Models
                 }
                 if (instruments.Any()) InstrumentsReceived?.Invoke(instruments);
             }
-            catch { /* Log error */ }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error in ProcessDictionaryResponse: {ex.Message}");
+            }
+        }
+
+        private bool IsFieldSet(int fieldNumber, byte[] bitmap)
+        {
+            int byteIndex = fieldNumber / 8;
+            int bitIndex = fieldNumber % 8;
+            if (byteIndex >= bitmap.Length) return false;
+            return (bitmap[byteIndex] & (1 << bitIndex)) != 0;
         }
 
         private void ProcessInstrumentDetailsResponse(byte[] response, int length, int stxPos)
@@ -200,32 +215,104 @@ namespace Cross_FIS_API_1._2.Models
                 int pos = stxPos + HeaderLength;
                 var details = new InstrumentDetails();
 
-                // This is a simplified parser. A real implementation would use a bitmap.
-                details.GlidAndSymbol = DecodeField(response, ref pos); 
-                pos += 7; // Skip filler
+                byte chaining = response[pos++]; // H0
+                details.GlidAndSymbol = DecodeField(response, ref pos); // H1
+                if (string.IsNullOrEmpty(details.GlidAndSymbol)) return;
 
-                details.BidSize = ParseLong(DecodeField(response, ref pos));
-                details.BidPrice = ParseDecimal(DecodeField(response, ref pos));
-                details.AskPrice = ParseDecimal(DecodeField(response, ref pos));
-                details.AskSize = ParseLong(DecodeField(response, ref pos));
-                details.LastPrice = ParseDecimal(DecodeField(response, ref pos));
-                details.LastSize = ParseLong(DecodeField(response, ref pos));
-                details.LastTradeTime = DecodeField(response, ref pos);
-                DecodeField(response, ref pos); // Skip field 7
-                details.PercentageVariation = ParseDecimal(DecodeField(response, ref pos));
-                details.Volume = ParseLong(DecodeField(response, ref pos));
-                details.OpeningPrice = ParseDecimal(DecodeField(response, ref pos));
-                details.HighPrice = ParseDecimal(DecodeField(response, ref pos));
-                details.LowPrice = ParseDecimal(DecodeField(response, ref pos));
-                details.SuspensionIndicator = DecodeField(response, ref pos);
-                details.VariationSign = DecodeField(response, ref pos);
-                DecodeField(response, ref pos); // Skip field 15
-                details.ClosingPrice = ParseDecimal(DecodeField(response, ref pos));
-                // ... continue parsing other fields as needed ...
-                
+                pos += 7; // H2: Skip filler - This filler IS likely present in MR/1000 reply
+
+                // Read the bitmap to determine which fields are present.
+                // Assuming a 32-byte bitmap for up to 256 fields, which is a common standard.
+                int bitmapLength = 32;
+                byte[] bitmap = new byte[bitmapLength];
+                if (pos + bitmapLength > length) return; // Not enough data for a bitmap
+                Array.Copy(response, pos, bitmap, 0, bitmapLength);
+                pos += bitmapLength;
+
+                // Iterate through all possible fields and decode them if their bit is set.
+                // This time, use fixed-length ASCII for ALL data fields.
+                for (int fieldNumber = 0; fieldNumber <= 224; fieldNumber++)
+                {
+                    if (IsFieldSet(fieldNumber, bitmap))
+                    {
+                        int fixedLength = 0;
+                        switch (fieldNumber)
+                        {
+                            case 0: // Bid quantity
+                            case 1: // Bid price
+                            case 2: // Ask price
+                            case 3: // Ask quantity
+                            case 4: // Last price
+                            case 9: // Volume
+                            case 10: // Opening price
+                            case 11: // High price
+                            case 12: // Low price
+                            case 16: // Closing price
+                                fixedLength = 16; 
+                                break;
+                            case 5: // Last size
+                            case 6: // Last trade time
+                            case 8: // Percentage variation
+                                fixedLength = 5; 
+                                break;
+                            case 13: // Suspension indicator
+                            case 14: // Variation sign
+                                fixedLength = 1; 
+                                break;
+                            case 88: // ISIN Code
+                                fixedLength = 12; 
+                                break;
+                            case 140: // Trading phase
+                                fixedLength = 4; 
+                                break;
+                            default:
+                                // For unknown fields, we still need to advance 'pos'.
+                                // This is a guess, but if the field is present, it must have some length.
+                                // This is where a full spec is needed.
+                                fixedLength = 10; // Arbitrary default fixed length for unknown fields.
+                                Debug.WriteLine($"DEBUG: Field {fieldNumber}: Unknown fixed length. Assuming {fixedLength}.");
+                                break;
+                        }
+
+                        if (pos + fixedLength > response.Length)
+                        {
+                            Debug.WriteLine($"DEBUG: Attempting to read field {fieldNumber} but fixed length {fixedLength} goes out of bounds.");
+                            break; // Exit loop if out of bounds
+                        }
+
+                        string fieldValue = Encoding.ASCII.GetString(response, pos, fixedLength).Trim();
+                        pos += fixedLength;
+                        Debug.WriteLine($"DEBUG: Field {fieldNumber}: Value='{fieldValue}' (Fixed ASCII {fixedLength})");
+
+                        switch (fieldNumber)
+                        {
+                            case 0: details.BidSize = ParseLong(fieldValue); break;
+                            case 1: details.BidPrice = ParseDecimal(fieldValue); break;
+                            case 2: details.AskPrice = ParseDecimal(fieldValue); break;
+                            case 3: details.AskSize = ParseLong(fieldValue); break;
+                            case 4: details.LastPrice = ParseDecimal(fieldValue); break;
+                            case 5: details.LastSize = ParseLong(fieldValue); break;
+                            case 6: details.LastTradeTime = fieldValue; break;
+                            case 8: details.PercentageVariation = ParseDecimal(fieldValue); break;
+                            case 9: details.Volume = ParseLong(fieldValue); break;
+                            case 10: details.OpeningPrice = ParseDecimal(fieldValue); break;
+                            case 11: details.HighPrice = ParseDecimal(fieldValue); break;
+                            case 12: details.LowPrice = ParseDecimal(fieldValue); break;
+                            case 13: details.SuspensionIndicator = fieldValue; break;
+                            case 14: details.VariationSign = fieldValue; break;
+                            case 16: details.ClosingPrice = ParseDecimal(fieldValue); break;
+                            case 88: details.ISIN = fieldValue; break;
+                            case 140: details.TradingPhase = fieldValue; break;
+                            default: break; // Value already read and discarded.
+                        }
+                    }
+                }
                 InstrumentDetailsReceived?.Invoke(details);
             }
-            catch { /* Log error */ }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to parse instrument details: {ex.Message}");
+            }
         }
 
         #region Message Builders
@@ -308,8 +395,9 @@ namespace Cross_FIS_API_1._2.Models
                 position += 1 + fieldLength;
                 return value;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Debug.WriteLine($"Error decoding field at position {position}: {ex.Message}");
                 return string.Empty;
             }
         }
