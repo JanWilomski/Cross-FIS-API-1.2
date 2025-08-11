@@ -136,13 +136,13 @@ namespace Cross_FIS_API_1._2.Models
             }
         }
 
-        public async Task SubscribeToInstrumentAsync(string glid)
-        {
-            System.Diagnostics.Debug.WriteLine($"DEBUG: SubscribeToInstrumentAsync called with GLID: '{glid}'");
-            if (!IsConnected || _stream == null) return;
-            byte[] subscriptionRequest = BuildStockWatchRequest(glid, 1000);
-            await _stream.WriteAsync(subscriptionRequest, 0, subscriptionRequest.Length);
-        }
+        // public async Task SubscribeToInstrumentAsync(string glid)
+        // {
+        //     System.Diagnostics.Debug.WriteLine($"DEBUG: SubscribeToInstrumentAsync called with GLID: '{glid}'");
+        //     if (!IsConnected || _stream == null) return;
+        //     byte[] subscriptionRequest = BuildStockWatchRequest(glid, 1000);
+        //     await _stream.WriteAsync(subscriptionRequest, 0, subscriptionRequest.Length);
+        // }
 
         public async Task UnsubscribeFromInstrumentAsync(string glid)
         {
@@ -272,30 +272,56 @@ namespace Cross_FIS_API_1._2.Models
                 int numberOfGlid = int.Parse(Encoding.ASCII.GetString(response, position, 5));
                 position += 5;
 
+                System.Diagnostics.Debug.WriteLine($"DEBUG: Processing {numberOfGlid} instruments from dictionary");
+
                 for (int i = 0; i < numberOfGlid; i++)
                 {
                     var instrument = new Instrument();
+                    
+                    // Parsowanie GLID+Stockcode - kompletny string zakodowany w GL format
                     string glidAndSymbol = DecodeField(response, ref position);
+                    System.Diagnostics.Debug.WriteLine($"DEBUG: Raw GLID+Symbol field: '{glidAndSymbol}'");
+                    
                     if (!string.IsNullOrEmpty(glidAndSymbol))
                     {
-                        if (glidAndSymbol.Length >= 12)
+                        // POPRAWNE PARSOWANIE: GLID+Stockcode to jeden ciągły string
+                        // Potrzebujemy znaleźć punkt podziału między GLID a Stockcode
+                        // GLID jest numeryczny (12 cyfr), po nim następuje alfanumeryczny stockcode
+                        
+                        // Metoda 1: Szukanie pierwszego niecy-frowego znaku po pozycji 12
+                        int stockcodeStart = -1;
+                        for (int j = 0; j < glidAndSymbol.Length; j++)
                         {
-                            instrument.Glid = glidAndSymbol.Substring(0, 12);
-                            instrument.Symbol = glidAndSymbol.Substring(12);
+                            if (!char.IsDigit(glidAndSymbol[j]))
+                            {
+                                stockcodeStart = j;
+                                break;
+                            }
+                        }
+                        
+                        if (stockcodeStart > 0)
+                        {
+                            instrument.Glid = glidAndSymbol.Substring(0, stockcodeStart);
+                            instrument.Symbol = glidAndSymbol.Substring(stockcodeStart);
                         }
                         else
                         {
+                            // Jeśli nie znaleziono podziału, traktuj cały string jako GLID
                             instrument.Glid = glidAndSymbol;
-                            instrument.Symbol = glidAndSymbol;
+                            instrument.Symbol = "";
                         }
-
-                        // NOWA WALIDACJA GLID
-                        if (!string.IsNullOrWhiteSpace(instrument.Glid) && instrument.Glid.All(char.IsDigit))
+                        
+                        // Walidacja GLID - musi być numeryczny
+                        if (!string.IsNullOrWhiteSpace(instrument.Glid) && 
+                            instrument.Glid.All(char.IsDigit) && 
+                            instrument.Glid.Length >= 12)
                         {
                             instrument.Name = DecodeField(response, ref position);
                             DecodeField(response, ref position); // Skip local code
                             instrument.ISIN = DecodeField(response, ref position);
                             DecodeField(response, ref position); // Skip group number
+
+                            System.Diagnostics.Debug.WriteLine($"DEBUG: Parsed Instrument: GLID='{instrument.Glid}', Symbol='{instrument.Symbol}', Name='{instrument.Name}', ISIN='{instrument.ISIN}'");
 
                             if (!string.IsNullOrEmpty(instrument.Symbol))
                             {
@@ -304,9 +330,10 @@ namespace Cross_FIS_API_1._2.Models
                         }
                         else
                         {
+                            System.Diagnostics.Debug.WriteLine($"DEBUG: Invalid GLID: '{instrument.Glid}' - skipping instrument");
                             // Skip remaining fields for this invalid instrument
                             DecodeField(response, ref position); // Name
-                            DecodeField(response, ref position); // Local code
+                            DecodeField(response, ref position); // Local code  
                             DecodeField(response, ref position); // ISIN
                             DecodeField(response, ref position); // Group number
                         }
@@ -315,16 +342,49 @@ namespace Cross_FIS_API_1._2.Models
 
                 if (instruments.Any())
                 {
+                    System.Diagnostics.Debug.WriteLine($"DEBUG: Successfully parsed {instruments.Count} valid instruments");
                     InstrumentsReceived?.Invoke(instruments);
+                    
+                    // AUTOMATYCZNA SUBSKRYPCJA PO OTRZYMANIU DICTIONARY
+                    _ = Task.Run(async () => await SubscribeToAllInstruments(instruments));
                 }
             }
-            catch { /* Silently fail on parsing error */ }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ERROR: Failed to process dictionary response: {ex.Message}");
+            }
         }
 
+
+
         #region Message Builders
-        private byte[] BuildStockWatchRequest(string glid, int requestNumber)
+        private async Task SubscribeToAllInstruments(List<Instrument> instruments)
         {
-            var dataPayload = EncodeField(glid);
+            System.Diagnostics.Debug.WriteLine($"DEBUG: Starting subscription to {instruments.Count} instruments");
+    
+            foreach (var instrument in instruments)
+            {
+                try
+                {
+                    await SubscribeToInstrumentAsync(instrument);
+                    await Task.Delay(100); // Krótkie opóźnienie między subskrypcjami
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"ERROR: Failed to subscribe to {instrument.Glid}{instrument.Symbol}: {ex.Message}");
+                }
+            }
+    
+            System.Diagnostics.Debug.WriteLine($"DEBUG: Completed subscription process");
+        }
+
+// Poprawiona metoda BuildStockWatchRequest - używaj pełnego GLID+Stockcode
+        private byte[] BuildStockWatchRequest(string glidAndStockcode, int requestNumber)
+        {
+            System.Diagnostics.Debug.WriteLine($"DEBUG: Building stock watch request for: '{glidAndStockcode}'");
+    
+            // KRYTYCZNE: Używaj pełnego GLID+Stockcode, nie tylko GLID
+            var dataPayload = EncodeField(glidAndStockcode);
             return BuildMessage(dataPayload, requestNumber);
         }
 
@@ -393,13 +453,19 @@ namespace Cross_FIS_API_1._2.Models
             {
                 if (position >= data.Length) return string.Empty;
                 var fieldLength = data[position] - 32;
+        
+                System.Diagnostics.Debug.WriteLine($"DEBUG: DecodeField at pos {position}, length byte={data[position]}, calculated length={fieldLength}");
+        
                 if (fieldLength <= 0 || position + 1 + fieldLength > data.Length) return string.Empty;
                 var value = Encoding.ASCII.GetString(data, position + 1, fieldLength);
                 position += 1 + fieldLength;
+        
+                System.Diagnostics.Debug.WriteLine($"DEBUG: DecodeField result: '{value}', new position: {position}");
                 return value;
             }
-            catch
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"ERROR: DecodeField failed: {ex.Message}");
                 return string.Empty;
             }
         }
@@ -409,6 +475,36 @@ namespace Cross_FIS_API_1._2.Models
             if (length < HeaderLength + 2) return false;
             string requestNumberStr = Encoding.ASCII.GetString(response, 26, 5);
             return requestNumberStr == "01100";
+        }
+        
+        public async Task SubscribeToInstrumentAsync(string glidAndStockcode)
+        {
+            System.Diagnostics.Debug.WriteLine($"DEBUG: SubscribeToInstrumentAsync called with GLID+Stockcode: '{glidAndStockcode}'");
+            if (!IsConnected || _stream == null) return;
+    
+            // Użyj pełnego GLID+Stockcode
+            byte[] subscriptionRequest = BuildStockWatchRequest(glidAndStockcode, 1000);
+            await _stream.WriteAsync(subscriptionRequest, 0, subscriptionRequest.Length);
+        }
+
+// Pomocnicza metoda do budowania pełnego GLID+Stockcode z obiektu Instrument
+        public static string BuildFullGlidStockcode(Instrument instrument)
+        {
+            return instrument.Glid + instrument.Symbol;
+        }
+
+// Przykład użycia:
+// Po otrzymaniu instrumentów z dictionary:
+        private void OnInstrumentsReceived(List<Instrument> instruments)
+        {
+            foreach (var instrument in instruments)
+            {
+                string fullGlidStockcode = BuildFullGlidStockcode(instrument);
+                System.Diagnostics.Debug.WriteLine($"DEBUG: Subscribing to instrument: {fullGlidStockcode}");
+        
+                // Subskrybuj z pełnym GLID+Stockcode
+                SubscribeToInstrumentAsync(fullGlidStockcode);
+            }
         }
         #endregion
     }
