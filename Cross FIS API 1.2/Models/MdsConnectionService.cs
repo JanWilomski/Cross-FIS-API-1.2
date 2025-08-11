@@ -12,6 +12,7 @@ namespace Cross_FIS_API_1._2.Models
     public class MarketData
     {
         public string Glid { get; set; } = string.Empty;
+        public string Symbol { get; set; } = string.Empty; // Dodano brakującą właściwość
         public decimal BidPrice { get; set; }
         public long BidSize { get; set; }
         public decimal AskPrice { get; set; }
@@ -137,6 +138,7 @@ namespace Cross_FIS_API_1._2.Models
 
         public async Task SubscribeToInstrumentAsync(string glid)
         {
+            System.Diagnostics.Debug.WriteLine($"DEBUG: SubscribeToInstrumentAsync called with GLID: '{glid}'");
             if (!IsConnected || _stream == null) return;
             byte[] subscriptionRequest = BuildStockWatchRequest(glid, 1000);
             await _stream.WriteAsync(subscriptionRequest, 0, subscriptionRequest.Length);
@@ -175,28 +177,89 @@ namespace Cross_FIS_API_1._2.Models
         {
             try
             {
-                int position = stxPos + HeaderLength;
-                string glidAndSymbol = DecodeField(response, ref position);
-                if (string.IsNullOrEmpty(glidAndSymbol)) return;
+                System.Diagnostics.Debug.WriteLine($"DEBUG: Processing MarketDataUpdate. Raw response length: {length}");
+                int currentPosition = stxPos + HeaderLength; // Start of data section
 
-                var marketData = new MarketData { Glid = glidAndSymbol.Length >= 12 ? glidAndSymbol.Substring(0, 12) : glidAndSymbol };
+                // Loop until we reach the end of the data section (before the footer)
+                while (currentPosition < length - FooterLength)
+                {
+                    // H0 Chaining
+                    if (currentPosition >= length) break; // Safety check
+                    byte chaining = response[currentPosition++];
+                    System.Diagnostics.Debug.WriteLine($"DEBUG: Chaining: {chaining}");
 
-                // This is a simplified parser. A full implementation would use a bitmap.
-                // For now, we assume a fixed field order for demonstration.
-                marketData.BidSize = long.Parse(DecodeField(response, ref position));
-                marketData.BidPrice = decimal.Parse(DecodeField(response, ref position));
-                marketData.AskPrice = decimal.Parse(DecodeField(response, ref position));
-                marketData.AskSize = long.Parse(DecodeField(response, ref position));
-                marketData.LastPrice = decimal.Parse(DecodeField(response, ref position));
-                marketData.LastSize = long.Parse(DecodeField(response, ref position));
-                // ... skipping some fields ...
-                position += (1 + (response[position] - 32)); // last trade time
-                position += (1 + (response[position] - 32)); // percentage variation
-                marketData.Volume = long.Parse(DecodeField(response, ref position));
+                    // H1 GLID + Stockcode
+                    string glidAndSymbol = DecodeField(response, ref currentPosition);
+                    System.Diagnostics.Debug.WriteLine($"DEBUG: GLID+Symbol: '{glidAndSymbol}'");
+                    if (string.IsNullOrEmpty(glidAndSymbol))
+                    {
+                        System.Diagnostics.Debug.WriteLine("ERROR: GLID+Symbol is empty, stopping parsing of MarketDataUpdate.");
+                        break; // Stop if GLID+Symbol is empty, indicates end or error
+                    }
 
-                MarketDataUpdate?.Invoke(marketData);
+                    var marketData = new MarketData { Glid = glidAndSymbol.Length >= 12 ? glidAndSymbol.Substring(0, 12) : glidAndSymbol };
+                    marketData.Symbol = glidAndSymbol.Length > 12 ? glidAndSymbol.Substring(12) : string.Empty;
+
+                    // H2 Filler (7 bajtów) - skip
+                    currentPosition += 7;
+
+                    // 0 Bid quantity
+                    string bidSizeStr = DecodeField(response, ref currentPosition);
+                    System.Diagnostics.Debug.WriteLine($"DEBUG:   Decoded BidSize: '{bidSizeStr}'");
+                    if (long.TryParse(bidSizeStr, out long bidSize)) marketData.BidSize = bidSize;
+
+                    // 1 Bid price
+                    string bidPriceStr = DecodeField(response, ref currentPosition);
+                    System.Diagnostics.Debug.WriteLine($"DEBUG:   Decoded BidPrice: '{bidPriceStr}'");
+                    if (decimal.TryParse(bidPriceStr, out decimal bidPrice)) marketData.BidPrice = bidPrice;
+
+                    // 2 Ask price
+                    string askPriceStr = DecodeField(response, ref currentPosition);
+                    System.Diagnostics.Debug.WriteLine($"DEBUG:   Decoded AskPrice: '{askPriceStr}'");
+                    if (decimal.TryParse(askPriceStr, out decimal askPrice)) marketData.AskPrice = askPrice;
+
+                    // 3 Ask quantity
+                    string askSizeStr = DecodeField(response, ref currentPosition);
+                    System.Diagnostics.Debug.WriteLine($"DEBUG:   Decoded AskSize: '{askSizeStr}'");
+                    if (long.TryParse(askSizeStr, out long askSize)) marketData.AskSize = askSize;
+
+                    // 4 Last traded price
+                    string lastPriceStr = DecodeField(response, ref currentPosition);
+                    System.Diagnostics.Debug.WriteLine($"DEBUG:   Decoded LastPrice: '{lastPriceStr}'");
+                    if (decimal.TryParse(lastPriceStr, out decimal lastPrice)) marketData.LastPrice = lastPrice;
+
+                    // 5 Last traded quantity
+                    string lastSizeStr = DecodeField(response, ref currentPosition);
+                    System.Diagnostics.Debug.WriteLine($"DEBUG:   Decoded LastSize: '{lastSizeStr}'");
+                    if (long.TryParse(lastSizeStr, out long lastSize)) marketData.LastSize = lastSize;
+
+                    // 6 Last trade time
+                    string lastTradeTimeStr = DecodeField(response, ref currentPosition);
+                    System.Diagnostics.Debug.WriteLine($"DEBUG:   Decoded LastTradeTime: '{lastTradeTimeStr}'");
+
+                    // Field 7 (unnamed in doc, but present)
+                    string field7Str = DecodeField(response, ref currentPosition);
+                    System.Diagnostics.Debug.WriteLine($"DEBUG:   Decoded Field 7: '{field7Str}'");
+
+                    // Field 8 Percentage variation
+                    string percentageVariationStr = DecodeField(response, ref currentPosition);
+                    System.Diagnostics.Debug.WriteLine($"DEBUG:   Decoded PercentageVariation: '{percentageVariationStr}'");
+
+                    // 9 Total quantity exchanged
+                    string volumeStr = DecodeField(response, ref currentPosition);
+                    System.Diagnostics.Debug.WriteLine($"DEBUG:   Decoded Volume: '{volumeStr}'");
+                    if (long.TryParse(volumeStr, out long volume)) marketData.Volume = volume;
+
+                    System.Diagnostics.Debug.WriteLine($"DEBUG: Parsed MarketData: GLID={marketData.Glid}, Symbol={marketData.Symbol}, Bid={marketData.BidPrice}/{marketData.BidSize}, Ask={marketData.AskPrice}/{marketData.AskSize}, Last={marketData.LastPrice}/{marketData.LastSize}, Volume={marketData.Volume}");
+
+                    MarketDataUpdate?.Invoke(marketData);
+                }
             }
-            catch { /* Silently fail on parsing error */ }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ERROR: Failed to process MarketDataUpdate: {ex.Message}");
+                // System.Diagnostics.Debug.WriteLine($"RAW RESPONSE: {BitConverter.ToString(response, stxPos).Replace("-", " ")}");
+            }
         }
 
         private void ProcessDictionaryResponse(byte[] response, int length, int stxPos)
