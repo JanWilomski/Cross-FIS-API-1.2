@@ -8,23 +8,12 @@ using System.Windows;
 
 namespace Cross_FIS_API_1._2.Models
 {
-    public enum OrderSide { Buy = 0, Sell = 1 }
-
-    public class OrderParameters
-    {
-        public string Glid { get; set; } = string.Empty;
-        public long Quantity { get; set; }
-        public decimal Price { get; set; }
-        public OrderSide Side { get; set; }
-        // Add other parameters like OrderType, Validity, etc. as needed
-    }
-
     public class FisConnectionService
     {
         private TcpClient? _tcpClient;
         private NetworkStream? _stream;
-        private string _node = string.Empty; // Store node for session context
-        private string _subnode = string.Empty; // Store subnode for session context
+        private string _node = string.Empty; 
+        private string _subnode = string.Empty; 
 
         private const byte Stx = 2;
         private const byte Etx = 3;
@@ -45,7 +34,6 @@ namespace Cross_FIS_API_1._2.Models
 
                 _stream = _tcpClient.GetStream();
 
-                // Store node and subnode for subsequent messages
                 _node = node;
                 _subnode = subnode;
 
@@ -62,9 +50,6 @@ namespace Cross_FIS_API_1._2.Models
                     bool loginSuccess = VerifyLoginResponse(buffer, bytesRead);
                     if (loginSuccess)
                     {
-                        byte[] subscriptionRequest = BuildRealTimeRepliesRequest();
-                        await _stream.WriteAsync(subscriptionRequest, 0, subscriptionRequest.Length);
-                        
                         _ = Task.Run(ListenForMessages);
                         return true;
                     }
@@ -91,7 +76,7 @@ namespace Cross_FIS_API_1._2.Models
                     if (_stream.DataAvailable)
                     {
                         var bytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length);
-                        // TODO: Process order confirmations/rejections (2019)
+                        // Login only, no messages to process
                     }
                     await Task.Delay(50);
                 }
@@ -110,36 +95,9 @@ namespace Cross_FIS_API_1._2.Models
             _tcpClient = null;
             _stream = null;
         }
-
-        public async Task SendNewOrderAsync(OrderParameters order)
-        {
-            if (!IsConnected || _stream == null) return;
-
-            byte[] orderRequest = BuildNewOrderRequest(order);
-            await _stream.WriteAsync(orderRequest, 0, orderRequest.Length);
-        }
-
+        
         #region Message Builders
-
-        private byte[] BuildNewOrderRequest(OrderParameters order)
-        {
-            var dataBuilder = new List<byte>();
-            dataBuilder.AddRange(Encoding.ASCII.GetBytes("O")); // C: Request Category (Order)
-            dataBuilder.AddRange(Encoding.ASCII.GetBytes("0")); // D1: Command (New)
-            dataBuilder.AddRange(EncodeField(order.Glid)); // G: Stock Code (GLID)
-            dataBuilder.AddRange(Encoding.ASCII.GetBytes(new string(' ', 10))); // Filler
-
-            // Simplified data part without bitmap
-            dataBuilder.AddRange(EncodeField(((int)order.Side).ToString())); // 0: Side
-            dataBuilder.AddRange(EncodeField(order.Quantity.ToString())); // 1: Quantity
-            dataBuilder.AddRange(EncodeField("L")); // 2: Modality (Limit)
-            dataBuilder.AddRange(EncodeField(order.Price.ToString("F4"))); // 3: Price (assuming 4 decimal places)
-            dataBuilder.AddRange(EncodeField("D")); // 4: Validity (Day)
-
-            var dataPayload = dataBuilder.ToArray();
-            return BuildMessage(dataPayload, 2000);
-        }
-
+        
         private byte[] BuildLoginRequest(string user, string password)
         {
             var dataBuilder = new List<byte>();
@@ -153,22 +111,7 @@ namespace Cross_FIS_API_1._2.Models
             var dataPayload = dataBuilder.ToArray();
             return BuildMessage(dataPayload, 1100);
         }
-
-        private byte[] BuildRealTimeRepliesRequest()
-        {
-            var dataBuilder = new List<byte>();
-            dataBuilder.Add((byte)'1');
-            dataBuilder.Add((byte)'1');
-            dataBuilder.Add((byte)'1');
-            dataBuilder.Add((byte)'0');
-            dataBuilder.Add((byte)'0');
-            dataBuilder.Add((byte)'0');
-            dataBuilder.Add((byte)'0');
-            dataBuilder.AddRange(Encoding.ASCII.GetBytes(new string(' ', 11)));
-            var dataPayload = dataBuilder.ToArray();
-            return BuildMessage(dataPayload, 2017);
-        }
-
+        
         private byte[] BuildMessage(byte[] dataPayload, int requestNumber)
         {
             int dataLength = dataPayload.Length;
@@ -183,7 +126,7 @@ namespace Cross_FIS_API_1._2.Models
                 writer.Write(Stx);
                 writer.Write((byte)'0');
                 writer.Write(Encoding.ASCII.GetBytes((HeaderLength + dataLength + FooterLength).ToString().PadLeft(5, '0')));
-                writer.Write(Encoding.ASCII.GetBytes(_subnode.PadLeft(5, '0'))); // Use stored subnode
+                writer.Write(Encoding.ASCII.GetBytes(_subnode.PadLeft(5, '0')));
                 writer.Write(Encoding.ASCII.GetBytes(new string(' ', 5)));
                 writer.Write(Encoding.ASCII.GetBytes("00000"));
                 writer.Write(Encoding.ASCII.GetBytes(new string(' ', 2)));

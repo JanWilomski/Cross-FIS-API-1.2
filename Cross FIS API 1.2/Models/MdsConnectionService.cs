@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -9,25 +10,12 @@ using System.Windows;
 
 namespace Cross_FIS_API_1._2.Models
 {
-    public class MarketData
-    {
-        public string Glid { get; set; } = string.Empty;
-        public string Symbol { get; set; } = string.Empty; // Dodano brakującą właściwość
-        public decimal BidPrice { get; set; }
-        public long BidSize { get; set; }
-        public decimal AskPrice { get; set; }
-        public long AskSize { get; set; }
-        public decimal LastPrice { get; set; }
-        public long LastSize { get; set; }
-        public long Volume { get; set; }
-    }
-
     public class MdsConnectionService
     {
         private TcpClient? _tcpClient;
         private NetworkStream? _stream;
-        private string _node = string.Empty; // Store node for session context
-        private string _subnode = string.Empty; // Store subnode for session context
+        private string _node = string.Empty;
+        private string _subnode = string.Empty;
 
         private const byte Stx = 2;
         private const byte Etx = 3;
@@ -36,7 +24,7 @@ namespace Cross_FIS_API_1._2.Models
 
         public bool IsConnected => _tcpClient?.Connected ?? false;
         public event Action<List<Instrument>>? InstrumentsReceived;
-        public event Action<MarketData>? MarketDataUpdate;
+        public event Action<InstrumentDetails>? InstrumentDetailsReceived;
 
         public async Task<bool> ConnectAndLoginAsync(string ipAddress, int port, string user, string password, string node, string subnode)
         {
@@ -50,7 +38,6 @@ namespace Cross_FIS_API_1._2.Models
 
                 _stream = _tcpClient.GetStream();
 
-                // Store node and subnode for subsequent messages
                 _node = node;
                 _subnode = subnode;
 
@@ -131,134 +118,43 @@ namespace Cross_FIS_API_1._2.Models
                     string glid = $"{exchange:D4}00{market:D3}000";
                     byte[] dictionaryRequest = BuildDictionaryRequest(glid);
                     await _stream.WriteAsync(dictionaryRequest, 0, dictionaryRequest.Length);
-                    await Task.Delay(100);
+                    await Task.Delay(50);
                 }
             }
         }
 
-        // public async Task SubscribeToInstrumentAsync(string glid)
-        // {
-        //     System.Diagnostics.Debug.WriteLine($"DEBUG: SubscribeToInstrumentAsync called with GLID: '{glid}'");
-        //     if (!IsConnected || _stream == null) return;
-        //     byte[] subscriptionRequest = BuildStockWatchRequest(glid, 1000);
-        //     await _stream.WriteAsync(subscriptionRequest, 0, subscriptionRequest.Length);
-        // }
-
-        public async Task UnsubscribeFromInstrumentAsync(string glid)
+        public async Task RequestInstrumentDetails(string glidAndSymbol)
         {
             if (!IsConnected || _stream == null) return;
-            byte[] unsubscriptionRequest = BuildStockWatchRequest(glid, 1002);
-            await _stream.WriteAsync(unsubscriptionRequest, 0, unsubscriptionRequest.Length);
+            byte[] request = BuildStockWatchRequest(glidAndSymbol);
+            await _stream.WriteAsync(request, 0, request.Length);
         }
 
         private void ProcessIncomingMessage(byte[] response, int length)
         {
-            var stxPos = Array.IndexOf(response, Stx);
-            if (stxPos == -1) return;
-
-            string requestNumberStr = Encoding.ASCII.GetString(response, stxPos + 24, 5);
-            if (int.TryParse(requestNumberStr, out int requestNumber))
+            int currentPos = 0;
+            while(currentPos < length)
             {
-                switch (requestNumber)
+                var stxPos = Array.IndexOf(response, Stx, currentPos);
+                if (stxPos == -1) break;
+
+                string requestNumberStr = Encoding.ASCII.GetString(response, stxPos + 24, 5);
+                if (int.TryParse(requestNumberStr, out int requestNumber))
                 {
-                    case 5108: // Dictionary response
-                        ProcessDictionaryResponse(response, length, stxPos);
-                        break;
-                    case 1000: // Stock watch update
-                    case 1001:
-                    case 1003:
-                        ProcessMarketDataUpdate(response, length, stxPos);
-                        break;
-                }
-            }
-        }
-
-        private void ProcessMarketDataUpdate(byte[] response, int length, int stxPos)
-        {
-            try
-            {
-                System.Diagnostics.Debug.WriteLine($"DEBUG: Processing MarketDataUpdate. Raw response length: {length}");
-                int currentPosition = stxPos + HeaderLength; // Start of data section
-
-                // Loop until we reach the end of the data section (before the footer)
-                while (currentPosition < length - FooterLength)
-                {
-                    // H0 Chaining
-                    if (currentPosition >= length) break; // Safety check
-                    byte chaining = response[currentPosition++];
-                    System.Diagnostics.Debug.WriteLine($"DEBUG: Chaining: {chaining}");
-
-                    // H1 GLID + Stockcode
-                    string glidAndSymbol = DecodeField(response, ref currentPosition);
-                    System.Diagnostics.Debug.WriteLine($"DEBUG: GLID+Symbol: '{glidAndSymbol}'");
-                    if (string.IsNullOrEmpty(glidAndSymbol))
+                    switch(requestNumber)
                     {
-                        System.Diagnostics.Debug.WriteLine("ERROR: GLID+Symbol is empty, stopping parsing of MarketDataUpdate.");
-                        break; // Stop if GLID+Symbol is empty, indicates end or error
+                        case 5108: // Dictionary response
+                            ProcessDictionaryResponse(response, length, stxPos);
+                            break;
+                        case 1000: // StockWatch response
+                        case 1001:
+                        case 1003:
+                            ProcessInstrumentDetailsResponse(response, length, stxPos);
+                            break;
                     }
-
-                    var marketData = new MarketData { Glid = glidAndSymbol.Length >= 12 ? glidAndSymbol.Substring(0, 12) : glidAndSymbol };
-                    marketData.Symbol = glidAndSymbol.Length > 12 ? glidAndSymbol.Substring(12) : string.Empty;
-
-                    // H2 Filler (7 bajtów) - skip
-                    currentPosition += 7;
-
-                    // 0 Bid quantity
-                    string bidSizeStr = DecodeField(response, ref currentPosition);
-                    System.Diagnostics.Debug.WriteLine($"DEBUG:   Decoded BidSize: '{bidSizeStr}'");
-                    if (long.TryParse(bidSizeStr, out long bidSize)) marketData.BidSize = bidSize;
-
-                    // 1 Bid price
-                    string bidPriceStr = DecodeField(response, ref currentPosition);
-                    System.Diagnostics.Debug.WriteLine($"DEBUG:   Decoded BidPrice: '{bidPriceStr}'");
-                    if (decimal.TryParse(bidPriceStr, out decimal bidPrice)) marketData.BidPrice = bidPrice;
-
-                    // 2 Ask price
-                    string askPriceStr = DecodeField(response, ref currentPosition);
-                    System.Diagnostics.Debug.WriteLine($"DEBUG:   Decoded AskPrice: '{askPriceStr}'");
-                    if (decimal.TryParse(askPriceStr, out decimal askPrice)) marketData.AskPrice = askPrice;
-
-                    // 3 Ask quantity
-                    string askSizeStr = DecodeField(response, ref currentPosition);
-                    System.Diagnostics.Debug.WriteLine($"DEBUG:   Decoded AskSize: '{askSizeStr}'");
-                    if (long.TryParse(askSizeStr, out long askSize)) marketData.AskSize = askSize;
-
-                    // 4 Last traded price
-                    string lastPriceStr = DecodeField(response, ref currentPosition);
-                    System.Diagnostics.Debug.WriteLine($"DEBUG:   Decoded LastPrice: '{lastPriceStr}'");
-                    if (decimal.TryParse(lastPriceStr, out decimal lastPrice)) marketData.LastPrice = lastPrice;
-
-                    // 5 Last traded quantity
-                    string lastSizeStr = DecodeField(response, ref currentPosition);
-                    System.Diagnostics.Debug.WriteLine($"DEBUG:   Decoded LastSize: '{lastSizeStr}'");
-                    if (long.TryParse(lastSizeStr, out long lastSize)) marketData.LastSize = lastSize;
-
-                    // 6 Last trade time
-                    string lastTradeTimeStr = DecodeField(response, ref currentPosition);
-                    System.Diagnostics.Debug.WriteLine($"DEBUG:   Decoded LastTradeTime: '{lastTradeTimeStr}'");
-
-                    // Field 7 (unnamed in doc, but present)
-                    string field7Str = DecodeField(response, ref currentPosition);
-                    System.Diagnostics.Debug.WriteLine($"DEBUG:   Decoded Field 7: '{field7Str}'");
-
-                    // Field 8 Percentage variation
-                    string percentageVariationStr = DecodeField(response, ref currentPosition);
-                    System.Diagnostics.Debug.WriteLine($"DEBUG:   Decoded PercentageVariation: '{percentageVariationStr}'");
-
-                    // 9 Total quantity exchanged
-                    string volumeStr = DecodeField(response, ref currentPosition);
-                    System.Diagnostics.Debug.WriteLine($"DEBUG:   Decoded Volume: '{volumeStr}'");
-                    if (long.TryParse(volumeStr, out long volume)) marketData.Volume = volume;
-
-                    System.Diagnostics.Debug.WriteLine($"DEBUG: Parsed MarketData: GLID={marketData.Glid}, Symbol={marketData.Symbol}, Bid={marketData.BidPrice}/{marketData.BidSize}, Ask={marketData.AskPrice}/{marketData.AskSize}, Last={marketData.LastPrice}/{marketData.LastSize}, Volume={marketData.Volume}");
-
-                    MarketDataUpdate?.Invoke(marketData);
                 }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"ERROR: Failed to process MarketDataUpdate: {ex.Message}");
-                // System.Diagnostics.Debug.WriteLine($"RAW RESPONSE: {BitConverter.ToString(response, stxPos).Replace("-", " ")}");
+                int messageLength = response[stxPos - 2] + 256 * response[stxPos - 1];
+                currentPos = stxPos + messageLength;
             }
         }
 
@@ -272,120 +168,73 @@ namespace Cross_FIS_API_1._2.Models
                 int numberOfGlid = int.Parse(Encoding.ASCII.GetString(response, position, 5));
                 position += 5;
 
-                System.Diagnostics.Debug.WriteLine($"DEBUG: Processing {numberOfGlid} instruments from dictionary");
-
                 for (int i = 0; i < numberOfGlid; i++)
                 {
-                    var instrument = new Instrument();
-                    
-                    // Parsowanie GLID+Stockcode - kompletny string zakodowany w GL format
                     string glidAndSymbol = DecodeField(response, ref position);
-                    System.Diagnostics.Debug.WriteLine($"DEBUG: Raw GLID+Symbol field: '{glidAndSymbol}'");
-                    
-                    if (!string.IsNullOrEmpty(glidAndSymbol))
+                    string name = DecodeField(response, ref position);
+                    DecodeField(response, ref position); // Skip local code
+                    string isin = DecodeField(response, ref position);
+                    DecodeField(response, ref position); // Skip group number
+
+                    if (!string.IsNullOrEmpty(glidAndSymbol) && glidAndSymbol.Length >= 12)
                     {
-                        // POPRAWNE PARSOWANIE: GLID+Stockcode to jeden ciągły string
-                        // Potrzebujemy znaleźć punkt podziału między GLID a Stockcode
-                        // GLID jest numeryczny (12 cyfr), po nim następuje alfanumeryczny stockcode
-                        
-                        // Metoda 1: Szukanie pierwszego niecy-frowego znaku po pozycji 12
-                        int stockcodeStart = -1;
-                        for (int j = 0; j < glidAndSymbol.Length; j++)
+                        var instrument = new Instrument
                         {
-                            if (!char.IsDigit(glidAndSymbol[j]))
-                            {
-                                stockcodeStart = j;
-                                break;
-                            }
-                        }
-                        
-                        if (stockcodeStart > 0)
-                        {
-                            instrument.Glid = glidAndSymbol.Substring(0, stockcodeStart);
-                            instrument.Symbol = glidAndSymbol.Substring(stockcodeStart);
-                        }
-                        else
-                        {
-                            // Jeśli nie znaleziono podziału, traktuj cały string jako GLID
-                            instrument.Glid = glidAndSymbol;
-                            instrument.Symbol = "";
-                        }
-                        
-                        // Walidacja GLID - musi być numeryczny
-                        if (!string.IsNullOrWhiteSpace(instrument.Glid) && 
-                            instrument.Glid.All(char.IsDigit) && 
-                            instrument.Glid.Length >= 12)
-                        {
-                            instrument.Name = DecodeField(response, ref position);
-                            DecodeField(response, ref position); // Skip local code
-                            instrument.ISIN = DecodeField(response, ref position);
-                            DecodeField(response, ref position); // Skip group number
-
-                            System.Diagnostics.Debug.WriteLine($"DEBUG: Parsed Instrument: GLID='{instrument.Glid}', Symbol='{instrument.Symbol}', Name='{instrument.Name}', ISIN='{instrument.ISIN}'");
-
-                            if (!string.IsNullOrEmpty(instrument.Symbol))
-                            {
-                                instruments.Add(instrument);
-                            }
-                        }
-                        else
-                        {
-                            System.Diagnostics.Debug.WriteLine($"DEBUG: Invalid GLID: '{instrument.Glid}' - skipping instrument");
-                            // Skip remaining fields for this invalid instrument
-                            DecodeField(response, ref position); // Name
-                            DecodeField(response, ref position); // Local code  
-                            DecodeField(response, ref position); // ISIN
-                            DecodeField(response, ref position); // Group number
-                        }
+                            Glid = glidAndSymbol.Substring(0, 12),
+                            Symbol = glidAndSymbol.Length > 12 ? glidAndSymbol.Substring(12) : "",
+                            Name = name,
+                            ISIN = isin
+                        };
+                        if (!string.IsNullOrEmpty(instrument.Symbol)) instruments.Add(instrument);
                     }
                 }
-
-                if (instruments.Any())
-                {
-                    System.Diagnostics.Debug.WriteLine($"DEBUG: Successfully parsed {instruments.Count} valid instruments");
-                    InstrumentsReceived?.Invoke(instruments);
-                    
-                    // AUTOMATYCZNA SUBSKRYPCJA PO OTRZYMANIU DICTIONARY
-                    _ = Task.Run(async () => await SubscribeToAllInstruments(instruments));
-                }
+                if (instruments.Any()) InstrumentsReceived?.Invoke(instruments);
             }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"ERROR: Failed to process dictionary response: {ex.Message}");
-            }
+            catch { /* Log error */ }
         }
 
+        private void ProcessInstrumentDetailsResponse(byte[] response, int length, int stxPos)
+        {
+            try
+            {
+                int pos = stxPos + HeaderLength;
+                var details = new InstrumentDetails();
 
+                // This is a simplified parser. A real implementation would use a bitmap.
+                details.GlidAndSymbol = DecodeField(response, ref pos); 
+                pos += 7; // Skip filler
+
+                details.BidSize = ParseLong(DecodeField(response, ref pos));
+                details.BidPrice = ParseDecimal(DecodeField(response, ref pos));
+                details.AskPrice = ParseDecimal(DecodeField(response, ref pos));
+                details.AskSize = ParseLong(DecodeField(response, ref pos));
+                details.LastPrice = ParseDecimal(DecodeField(response, ref pos));
+                details.LastSize = ParseLong(DecodeField(response, ref pos));
+                details.LastTradeTime = DecodeField(response, ref pos);
+                DecodeField(response, ref pos); // Skip field 7
+                details.PercentageVariation = ParseDecimal(DecodeField(response, ref pos));
+                details.Volume = ParseLong(DecodeField(response, ref pos));
+                details.OpeningPrice = ParseDecimal(DecodeField(response, ref pos));
+                details.HighPrice = ParseDecimal(DecodeField(response, ref pos));
+                details.LowPrice = ParseDecimal(DecodeField(response, ref pos));
+                details.SuspensionIndicator = DecodeField(response, ref pos);
+                details.VariationSign = DecodeField(response, ref pos);
+                DecodeField(response, ref pos); // Skip field 15
+                details.ClosingPrice = ParseDecimal(DecodeField(response, ref pos));
+                // ... continue parsing other fields as needed ...
+                
+                InstrumentDetailsReceived?.Invoke(details);
+            }
+            catch { /* Log error */ }
+        }
 
         #region Message Builders
-        private async Task SubscribeToAllInstruments(List<Instrument> instruments)
+        private byte[] BuildStockWatchRequest(string glidAndStockcode)
         {
-            System.Diagnostics.Debug.WriteLine($"DEBUG: Starting subscription to {instruments.Count} instruments");
-    
-            foreach (var instrument in instruments)
-            {
-                try
-                {
-                    await SubscribeToInstrumentAsync(instrument);
-                    await Task.Delay(100); // Krótkie opóźnienie między subskrypcjami
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"ERROR: Failed to subscribe to {instrument.Glid}{instrument.Symbol}: {ex.Message}");
-                }
-            }
-    
-            System.Diagnostics.Debug.WriteLine($"DEBUG: Completed subscription process");
-        }
-
-// Poprawiona metoda BuildStockWatchRequest - używaj pełnego GLID+Stockcode
-        private byte[] BuildStockWatchRequest(string glidAndStockcode, int requestNumber)
-        {
-            System.Diagnostics.Debug.WriteLine($"DEBUG: Building stock watch request for: '{glidAndStockcode}'");
-    
-            // KRYTYCZNE: Używaj pełnego GLID+Stockcode, nie tylko GLID
-            var dataPayload = EncodeField(glidAndStockcode);
-            return BuildMessage(dataPayload, requestNumber);
+            var dataBuilder = new List<byte>();
+            dataBuilder.AddRange(Encoding.ASCII.GetBytes(new string(' ', 7))); // H0 Filler
+            dataBuilder.AddRange(EncodeField(glidAndStockcode)); // H1 GLID + Stockcode
+            return BuildMessage(dataBuilder.ToArray(), 1000); // 1000 for snapshot
         }
 
         private byte[] BuildDictionaryRequest(string glid)
@@ -425,7 +274,7 @@ namespace Cross_FIS_API_1._2.Models
                 writer.Write(Stx);
                 writer.Write((byte)'0');
                 writer.Write(Encoding.ASCII.GetBytes((HeaderLength + dataLength + FooterLength).ToString().PadLeft(5, '0')));
-                writer.Write(Encoding.ASCII.GetBytes(_subnode.PadLeft(5, '0'))); // Use stored subnode
+                writer.Write(Encoding.ASCII.GetBytes(_subnode.PadLeft(5, '0')));
                 writer.Write(Encoding.ASCII.GetBytes(new string(' ', 5)));
                 writer.Write(Encoding.ASCII.GetBytes("00000"));
                 writer.Write(Encoding.ASCII.GetBytes(new string(' ', 2)));
@@ -454,18 +303,13 @@ namespace Cross_FIS_API_1._2.Models
                 if (position >= data.Length) return string.Empty;
                 var fieldLength = data[position] - 32;
         
-                System.Diagnostics.Debug.WriteLine($"DEBUG: DecodeField at pos {position}, length byte={data[position]}, calculated length={fieldLength}");
-        
                 if (fieldLength <= 0 || position + 1 + fieldLength > data.Length) return string.Empty;
                 var value = Encoding.ASCII.GetString(data, position + 1, fieldLength);
                 position += 1 + fieldLength;
-        
-                System.Diagnostics.Debug.WriteLine($"DEBUG: DecodeField result: '{value}', new position: {position}");
                 return value;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Diagnostics.Debug.WriteLine($"ERROR: DecodeField failed: {ex.Message}");
                 return string.Empty;
             }
         }
@@ -476,36 +320,10 @@ namespace Cross_FIS_API_1._2.Models
             string requestNumberStr = Encoding.ASCII.GetString(response, 26, 5);
             return requestNumberStr == "01100";
         }
-        
-        public async Task SubscribeToInstrumentAsync(string glidAndStockcode)
-        {
-            System.Diagnostics.Debug.WriteLine($"DEBUG: SubscribeToInstrumentAsync called with GLID+Stockcode: '{glidAndStockcode}'");
-            if (!IsConnected || _stream == null) return;
-    
-            // Użyj pełnego GLID+Stockcode
-            byte[] subscriptionRequest = BuildStockWatchRequest(glidAndStockcode, 1000);
-            await _stream.WriteAsync(subscriptionRequest, 0, subscriptionRequest.Length);
-        }
 
-// Pomocnicza metoda do budowania pełnego GLID+Stockcode z obiektu Instrument
-        public static string BuildFullGlidStockcode(Instrument instrument)
-        {
-            return instrument.Glid + instrument.Symbol;
-        }
+        private long ParseLong(string value) => long.TryParse(value, out var result) ? result : 0;
+        private decimal ParseDecimal(string value) => decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var result) ? result : 0;
 
-// Przykład użycia:
-// Po otrzymaniu instrumentów z dictionary:
-        private void OnInstrumentsReceived(List<Instrument> instruments)
-        {
-            foreach (var instrument in instruments)
-            {
-                string fullGlidStockcode = BuildFullGlidStockcode(instrument);
-                System.Diagnostics.Debug.WriteLine($"DEBUG: Subscribing to instrument: {fullGlidStockcode}");
-        
-                // Subskrybuj z pełnym GLID+Stockcode
-                SubscribeToInstrumentAsync(fullGlidStockcode);
-            }
-        }
         #endregion
     }
 }

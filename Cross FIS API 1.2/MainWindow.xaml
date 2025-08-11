@@ -102,14 +102,13 @@
                           AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="300">
                     <b:Interaction.Triggers>
                         <b:EventTrigger EventName="MouseDoubleClick">
-                            <b:InvokeCommandAction Command="{Binding OpenOrderTicketCommand}"/>
+                            <b:InvokeCommandAction Command="{Binding OpenInstrumentDetailsCommand}"/>
                         </b:EventTrigger>
                     </b:Interaction.Triggers>
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Symbol" Binding="{Binding Symbol}" Width="*"/>
+                        <DataGridTextColumn Header="GLID+Symbol" Binding="{Binding GlidAndSymbol}" Width="*"/>
                         <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*"/>
                         <DataGridTextColumn Header="ISIN" Binding="{Binding ISIN}" Width="*"/>
-                        <DataGridTextColumn Header="GLID" Binding="{Binding Glid}" Width="*"/>
                     </DataGrid.Columns>
                 </DataGrid>
             </DockPanel>

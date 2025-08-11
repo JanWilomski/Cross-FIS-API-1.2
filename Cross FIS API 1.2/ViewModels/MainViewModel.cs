@@ -54,7 +54,7 @@ namespace Cross_FIS_API_1._2.ViewModels
             ConnectMdsCommand = new AsyncRelayCommand(ConnectMds, () => !_mdsConnectionService.IsConnected && !IsMdsConnecting);
             DisconnectMdsCommand = new RelayCommand(DisconnectMds, () => _mdsConnectionService.IsConnected);
             FetchInstrumentsCommand = new AsyncRelayCommand(FetchInstruments, () => _mdsConnectionService.IsConnected && !IsFetchingInstruments);
-            OpenOrderTicketCommand = new RelayCommand(OpenOrderTicket, () => SelectedInstrument != null && _fisConnectionService.IsConnected && _mdsConnectionService.IsConnected);
+            OpenInstrumentDetailsCommand = new RelayCommand(OpenInstrumentDetails, () => SelectedInstrument != null && _mdsConnectionService.IsConnected);
         }
 
         private void OnInstrumentsReceived(List<Instrument> instruments)
@@ -63,7 +63,7 @@ namespace Cross_FIS_API_1._2.ViewModels
             {
                 foreach (var instrument in instruments)
                 {
-                    if (!Instruments.Any(i => i.Symbol == instrument.Symbol && i.Glid == instrument.Glid))
+                    if (!Instruments.Any(i => i.GlidAndSymbol == instrument.GlidAndSymbol))
                     {
                         Instruments.Add(instrument);
                     }
@@ -142,7 +142,7 @@ namespace Cross_FIS_API_1._2.ViewModels
             IsFetchingInstruments = true;
             Instruments.Clear();
             await _mdsConnectionService.RequestAllInstrumentsAsync();
-            await Task.Delay(5000); 
+            await Task.Delay(5000); // Give time for responses to arrive
             IsFetchingInstruments = false;
         }
 
@@ -154,24 +154,24 @@ namespace Cross_FIS_API_1._2.ViewModels
         });
         #endregion
 
-        #region Order Ticket Logic
+        #region Details Window Logic
         public Instrument? SelectedInstrument
         {
             get => _selectedInstrument;
-            set => SetProperty(ref _selectedInstrument, value, () => ((RelayCommand)OpenOrderTicketCommand).RaiseCanExecuteChanged());
+            set => SetProperty(ref _selectedInstrument, value, () => ((RelayCommand)OpenInstrumentDetailsCommand).RaiseCanExecuteChanged());
         }
-        public ICommand OpenOrderTicketCommand { get; }
+        public ICommand OpenInstrumentDetailsCommand { get; }
 
-        private void OpenOrderTicket()
+        private void OpenInstrumentDetails()
         {
             if (SelectedInstrument == null) return;
 
-            var orderTicketVM = new OrderTicketViewModel(SelectedInstrument, _fisConnectionService, _mdsConnectionService);
-            var orderTicketWindow = new OrderTicketWindow(orderTicketVM)
+            var detailsVM = new InstrumentDetailsViewModel(SelectedInstrument, _mdsConnectionService);
+            var detailsWindow = new InstrumentDetailsWindow(detailsVM)
             {
                 Owner = Application.Current.MainWindow
             };
-            orderTicketWindow.Show();
+            detailsWindow.Show();
         }
         #endregion
 
