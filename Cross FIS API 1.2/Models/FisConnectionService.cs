@@ -372,7 +372,7 @@ namespace Cross_FIS_API_1._2.Models
             // D1 - Command
             dataBuilder.AddRange(Encoding.ASCII.GetBytes("A")); // A for Add
             // G - Stock code
-            dataBuilder.AddRange(EncodeField(order.Instrument.Symbol));
+            dataBuilder.AddRange(EncodeField(order.Instrument.ISIN));
             // Filler
             dataBuilder.AddRange(Encoding.ASCII.GetBytes(new string(' ', 10)));
 
@@ -382,7 +382,7 @@ namespace Cross_FIS_API_1._2.Models
             // #0 Side (1 for Buy, 2 for Sell)
             // Debugging: Check order.Side value
             Debug.WriteLine($"Order.Side value: {order.Side}");
-            string sideValue = (order.Side == 'B' ? "1" : "2");
+            string sideValue = (order.Side == 'B' ? "0" : "1");
             Debug.WriteLine($"Side value for EncodeGlField: {sideValue}");
 
             // Debugging: Check if orderData is null (should not be)
@@ -417,12 +417,12 @@ namespace Cross_FIS_API_1._2.Models
             }
 
             // #4 Validity
-            string validityCode = "0"; // Default to Day
+            string validityCode = "J"; // Default to Day (J for Day)
             switch (order.Validity)
             {
-                case "GTC": validityCode = "1"; break;
-                case "IOC": validityCode = "4"; break;
-                case "FOK": validityCode = "5"; break;
+                case "GTC": validityCode = "R"; break; // R for GTC
+                case "IOC": validityCode = "E"; break; // E for E&E (Executed and Eliminated) - closest for IOC
+                case "FOK": validityCode = "K"; break; // K for FOK
             }
             orderData.Append(EncodeGlField("4", validityCode));
 
@@ -455,11 +455,13 @@ namespace Cross_FIS_API_1._2.Models
                 writer.Write((byte)(totalLength % 256));
                 writer.Write((byte)(totalLength / 256));
                 writer.Write(Stx);
-                writer.Write((byte)' '); // API Version for SLE V4 is space
+                byte apiVersionByte = (requestNumber == 1100) ? (byte)'0' : (byte)' ';
+                writer.Write(apiVersionByte);
                 writer.Write(Encoding.ASCII.GetBytes((HeaderLength + dataLength + FooterLength).ToString().PadLeft(5, '0')));
                 writer.Write(Encoding.ASCII.GetBytes(_subnode.PadLeft(5, '0')));
                 writer.Write(Encoding.ASCII.GetBytes(new string(' ', 5)));
-                writer.Write(Encoding.ASCII.GetBytes("00000"));
+                string callingLogicalIdentifier = (requestNumber == 1100) ? "00000" : _node.PadLeft(5, '0');
+                writer.Write(Encoding.ASCII.GetBytes(callingLogicalIdentifier));
                 writer.Write(Encoding.ASCII.GetBytes(new string(' ', 2)));
                 writer.Write(Encoding.ASCII.GetBytes(requestNumber.ToString().PadLeft(5, '0')));
                 writer.Write(Encoding.ASCII.GetBytes(new string(' ', 3)));
