@@ -114,6 +114,8 @@
             </DockPanel>
         </GroupBox>
 
+        
+
         <StatusBar Margin="5">
             <StatusBarItem>
                 <TextBlock Text="SLE Status:" FontWeight="Bold"/>

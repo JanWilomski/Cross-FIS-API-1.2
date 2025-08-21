@@ -200,14 +200,6 @@ namespace Cross_FIS_API_1._2.Models
             }
         }
 
-        private bool IsFieldSet(int fieldNumber, byte[] bitmap)
-        {
-            int byteIndex = fieldNumber / 8;
-            int bitIndex = fieldNumber % 8;
-            if (byteIndex >= bitmap.Length) return false;
-            return (bitmap[byteIndex] & (1 << bitIndex)) != 0;
-        }
-
         private void ProcessInstrumentDetailsResponse(byte[] response, int length, int stxPos)
         {
             try
@@ -215,104 +207,74 @@ namespace Cross_FIS_API_1._2.Models
                 int pos = stxPos + HeaderLength;
                 var details = new InstrumentDetails();
 
-                byte chaining = response[pos++]; // H0
-                details.GlidAndSymbol = DecodeField(response, ref pos); // H1
+                // 1. Odczytaj nagłówek
+                // H0: Chaining (1 bajt)
+                byte chaining = response[pos++];
+
+                // H1: GLID+Stockcode (format GL)
+                details.GlidAndSymbol = DecodeField(response, ref pos);
                 if (string.IsNullOrEmpty(details.GlidAndSymbol)) return;
 
-                pos += 7; // H2: Skip filler - This filler IS likely present in MR/1000 reply
+                // H2: Filler (7 bajtów)
+                pos += 7;
 
-                // Read the bitmap to determine which fields are present.
-                // Assuming a 32-byte bitmap for up to 256 fields, which is a common standard.
-                int bitmapLength = 32;
-                byte[] bitmap = new byte[bitmapLength];
-                if (pos + bitmapLength > length) return; // Not enough data for a bitmap
-                Array.Copy(response, pos, bitmap, 0, bitmapLength);
-                pos += bitmapLength;
-
-                // Iterate through all possible fields and decode them if their bit is set.
-                // This time, use fixed-length ASCII for ALL data fields.
-                for (int fieldNumber = 0; fieldNumber <= 224; fieldNumber++)
+                // 3. Przetwarzaj pola danych sekwencyjnie
+                // Pętla przez wszystkie możliwe pola aż do najwyższego, którego potrzebujemy (140)
+                for (int fieldNumber = 0; fieldNumber <= 140; fieldNumber++)
                 {
-                    if (IsFieldSet(fieldNumber, bitmap))
+                    // Sprawdzenie, czy nie wyszliśmy poza bufor lub czy nie trafiliśmy na koniec wiadomości
+                    if (pos >= length || response[pos] == Etx)
                     {
-                        int fixedLength = 0;
-                        switch (fieldNumber)
-                        {
-                            case 0: // Bid quantity
-                            case 1: // Bid price
-                            case 2: // Ask price
-                            case 3: // Ask quantity
-                            case 4: // Last price
-                            case 9: // Volume
-                            case 10: // Opening price
-                            case 11: // High price
-                            case 12: // Low price
-                            case 16: // Closing price
-                                fixedLength = 16; 
-                                break;
-                            case 5: // Last size
-                            case 6: // Last trade time
-                            case 8: // Percentage variation
-                                fixedLength = 5; 
-                                break;
-                            case 13: // Suspension indicator
-                            case 14: // Variation sign
-                                fixedLength = 1; 
-                                break;
-                            case 88: // ISIN Code
-                                fixedLength = 12; 
-                                break;
-                            case 140: // Trading phase
-                                fixedLength = 4; 
-                                break;
-                            default:
-                                // For unknown fields, we still need to advance 'pos'.
-                                // This is a guess, but if the field is present, it must have some length.
-                                // This is where a full spec is needed.
-                                fixedLength = 10; // Arbitrary default fixed length for unknown fields.
-                                Debug.WriteLine($"DEBUG: Field {fieldNumber}: Unknown fixed length. Assuming {fixedLength}.");
-                                break;
-                        }
+                        break;
+                    }
+            
+                    // Odczytaj pole, aby przesunąć wskaźnik 'pos', nawet jeśli go nie używamy
+                    string fieldValue = DecodeField(response, ref pos);
 
-                        if (pos + fixedLength > response.Length)
-                        {
-                            Debug.WriteLine($"DEBUG: Attempting to read field {fieldNumber} but fixed length {fixedLength} goes out of bounds.");
-                            break; // Exit loop if out of bounds
-                        }
-
-                        string fieldValue = Encoding.ASCII.GetString(response, pos, fixedLength).Trim();
-                        pos += fixedLength;
-                        Debug.WriteLine($"DEBUG: Field {fieldNumber}: Value='{fieldValue}' (Fixed ASCII {fixedLength})");
-
-                        switch (fieldNumber)
-                        {
-                            case 0: details.BidSize = ParseLong(fieldValue); break;
-                            case 1: details.BidPrice = ParseDecimal(fieldValue); break;
-                            case 2: details.AskPrice = ParseDecimal(fieldValue); break;
-                            case 3: details.AskSize = ParseLong(fieldValue); break;
-                            case 4: details.LastPrice = ParseDecimal(fieldValue); break;
-                            case 5: details.LastSize = ParseLong(fieldValue); break;
-                            case 6: details.LastTradeTime = fieldValue; break;
-                            case 8: details.PercentageVariation = ParseDecimal(fieldValue); break;
-                            case 9: details.Volume = ParseLong(fieldValue); break;
-                            case 10: details.OpeningPrice = ParseDecimal(fieldValue); break;
-                            case 11: details.HighPrice = ParseDecimal(fieldValue); break;
-                            case 12: details.LowPrice = ParseDecimal(fieldValue); break;
-                            case 13: details.SuspensionIndicator = fieldValue; break;
-                            case 14: details.VariationSign = fieldValue; break;
-                            case 16: details.ClosingPrice = ParseDecimal(fieldValue); break;
-                            case 88: details.ISIN = fieldValue; break;
-                            case 140: details.TradingPhase = fieldValue; break;
-                            default: break; // Value already read and discarded.
-                        }
+                    // Interpretuj wartość w zależności od numeru pola
+                    switch (fieldNumber)
+                    {
+                        case 0: details.BidQuantity = ParseLong(fieldValue); break;
+                        case 1: details.BidPrice = ParseDecimal(fieldValue); break;
+                        case 2: details.AskPrice = ParseDecimal(fieldValue); break;
+                        case 3: details.AskQuantity = ParseLong(fieldValue); break;
+                        case 4: details.LastPrice = ParseDecimal(fieldValue); break;
+                        case 5: details.LastQuantity = ParseLong(fieldValue); break;
+                        case 6: details.LastTradeTime = fieldValue; break;
+                        // Pole 7 (puste) jest pomijane
+                        case 8: details.PercentageVariation = ParseDecimal(fieldValue); break;
+                        case 9: details.Volume = ParseLong(fieldValue); break;
+                        case 10: details.OpenPrice = ParseDecimal(fieldValue); break;
+                        case 11: details.HighPrice = ParseDecimal(fieldValue); break;
+                        case 12: details.LowPrice = ParseDecimal(fieldValue); break;
+                        case 13: details.SuspensionIndicator = fieldValue; break;
+                        case 14: details.VariationSign = fieldValue; break;
+                        // Pole 15 (puste) jest pomijane
+                        case 16: details.ClosePrice = ParseDecimal(fieldValue); break;
+                        // Pola 17-87 są pomijane, ale odczytywane w pętli
+                        case 88: details.ISIN = fieldValue; break;
+                        // Pola 89-139 są pomijane
+                        case 140: details.TradingPhase = fieldValue; break;
+                        // Domyślnie nic nie rób, pole zostało już odczytane
+                        default:
+                            break;
                     }
                 }
+
                 InstrumentDetailsReceived?.Invoke(details);
             }
             catch (Exception ex)
             {
+                // Użyj Debug.WriteLine zamiast MessageBox, aby nie blokować wątku w tle
                 Debug.WriteLine($"Failed to parse instrument details: {ex.Message}");
             }
+        }
+
+        // Pomocnicza metoda do debugowania
+        private void LogResponseData(byte[] response, int stxPos, int length, string context)
+        {
+            var hex = BitConverter.ToString(response, stxPos, Math.Min(length - stxPos, 100));
+            Debug.WriteLine($"DEBUG {context}: {hex}");
         }
 
         #region Message Builders

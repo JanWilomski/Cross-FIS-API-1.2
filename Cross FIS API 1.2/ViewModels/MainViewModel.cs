@@ -4,6 +4,7 @@ using Cross_FIS_API_1._2.Views;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -166,7 +167,10 @@ namespace Cross_FIS_API_1._2.ViewModels
         {
             if (SelectedInstrument == null) return;
 
-            var detailsVM = new InstrumentDetailsViewModel(SelectedInstrument, _mdsConnectionService);
+            Debug.WriteLine($"SelectedInstrument Symbol (from MainViewModel): {SelectedInstrument.Symbol ?? "NULL"}");
+            Debug.WriteLine($"SelectedInstrument GLID (from MainViewModel): {SelectedInstrument.Glid ?? "NULL"}");
+
+            var detailsVM = new InstrumentDetailsViewModel(SelectedInstrument, _mdsConnectionService, _fisConnectionService, SleUser);
             var detailsWindow = new InstrumentDetailsWindow(detailsVM)
             {
                 Owner = Application.Current.MainWindow

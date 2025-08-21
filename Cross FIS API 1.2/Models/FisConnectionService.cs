@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using Cross_FIS_API_1._2.Models;
 
 namespace Cross_FIS_API_1._2.Models
 {
@@ -21,6 +23,7 @@ namespace Cross_FIS_API_1._2.Models
         private const int FooterLength = 3;
 
         public bool IsConnected => _tcpClient?.Connected ?? false;
+        public event Action<string> MessageReceived;
 
         public async Task<bool> ConnectAndLoginAsync(string ipAddress, int port, string user, string password, string node, string subnode)
         {
@@ -65,6 +68,15 @@ namespace Cross_FIS_API_1._2.Models
             }
         }
 
+        public async Task PlaceOrder(Order order, string user)
+        {
+            if (!IsConnected || _stream == null) return;
+            Debug.WriteLine($"Placing order: {order.Instrument.Symbol}, {order.Quantity}@{order.Price}, Side: {order.Side}, Validity: {order.Validity}, ClientType: {order.ClientCodeType}");
+            byte[] orderRequest = BuildOrderRequest(order, user);
+            Debug.WriteLine($"Order request: {Encoding.ASCII.GetString(orderRequest)}");
+            await _stream.WriteAsync(orderRequest, 0, orderRequest.Length);
+        }
+
         private async Task ListenForMessages()
         {
             if (_stream == null) return;
@@ -76,7 +88,14 @@ namespace Cross_FIS_API_1._2.Models
                     if (_stream.DataAvailable)
                     {
                         var bytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length);
-                        // Login only, no messages to process
+                        if (bytesRead > 0)
+                        {
+                            var message = Encoding.ASCII.GetString(buffer, 0, bytesRead);
+                            Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                MessageReceived?.Invoke(message);
+                            });
+                        }
                     }
                     await Task.Delay(50);
                 }
@@ -111,6 +130,68 @@ namespace Cross_FIS_API_1._2.Models
             var dataPayload = dataBuilder.ToArray();
             return BuildMessage(dataPayload, 1100);
         }
+
+        private static int _internalReferenceCounter = 0;
+
+        private byte[] BuildOrderRequest(Order order, string user)
+        {
+            Debug.WriteLine($"Order Instrument Symbol in BuildOrderRequest: {order.Instrument?.Symbol ?? "NULL"}");
+            var dataBuilder = new List<byte>();
+            // B - User Number
+            dataBuilder.AddRange(Encoding.ASCII.GetBytes(user.PadLeft(5, '0')));
+            // C - Request Category
+            dataBuilder.AddRange(Encoding.ASCII.GetBytes("O")); // O for Order
+            // D1 - Command
+            dataBuilder.AddRange(Encoding.ASCII.GetBytes("A")); // A for Add
+            // G - Stock code
+            dataBuilder.AddRange(EncodeField(order.Instrument.Symbol));
+            // Filler
+            dataBuilder.AddRange(Encoding.ASCII.GetBytes(new string(' ', 10)));
+
+            // Data for order (Bitmap fields)
+            var orderData = new StringBuilder();
+
+            // #0 Side (1 for Buy, 2 for Sell)
+            orderData.Append(EncodeGlField("0", order.Side == 'B' ? "1" : "2"));
+
+            // #1 Quantity
+            orderData.Append(EncodeGlField("1", order.Quantity.ToString()));
+
+            // #2 Modality (L for Limit)
+            orderData.Append(EncodeGlField("2", "L"));
+
+            // #3 Price
+            if (order.Type == 'L')
+            {
+                orderData.Append(EncodeGlField("3", order.Price.ToString("F2").Replace(",", ".")));
+            }
+
+            // #4 Validity
+            string validityCode = "0"; // Default to Day
+            switch (order.Validity)
+            {
+                case "GTC": validityCode = "1"; break;
+                case "IOC": validityCode = "4"; break;
+                case "FOK": validityCode = "5"; break;
+            }
+            orderData.Append(EncodeGlField("4", validityCode));
+
+            // #12 Internal reference
+            var internalRef = System.Threading.Interlocked.Increment(ref _internalReferenceCounter);
+            order.InternalReference = internalRef.ToString();
+            orderData.Append(EncodeGlField("12", order.InternalReference));
+
+            // #17 Client Code Type
+            string clientCodeTypeCode = order.ClientCodeType == "Principal" ? "P" : "C";
+            orderData.Append(EncodeGlField("17", clientCodeTypeCode));
+
+            // #106 GLID
+            orderData.Append(EncodeGlField("106", order.Instrument.Glid));
+
+            dataBuilder.AddRange(Encoding.ASCII.GetBytes(orderData.ToString()));
+
+            return BuildMessage(dataBuilder.ToArray(), 2000);
+        }
         
         private byte[] BuildMessage(byte[] dataPayload, int requestNumber)
         {
@@ -124,7 +205,7 @@ namespace Cross_FIS_API_1._2.Models
                 writer.Write((byte)(totalLength % 256));
                 writer.Write((byte)(totalLength / 256));
                 writer.Write(Stx);
-                writer.Write((byte)'0');
+                writer.Write((byte)' '); // API Version for SLE V4 is space
                 writer.Write(Encoding.ASCII.GetBytes((HeaderLength + dataLength + FooterLength).ToString().PadLeft(5, '0')));
                 writer.Write(Encoding.ASCII.GetBytes(_subnode.PadLeft(5, '0')));
                 writer.Write(Encoding.ASCII.GetBytes(new string(' ', 5)));
@@ -137,6 +218,11 @@ namespace Cross_FIS_API_1._2.Models
                 writer.Write(Etx);
             }
             return message;
+        }
+
+        private string EncodeGlField(string tag, string value)
+        {
+            return $"{(char)(tag.Length + 32)}{tag}{(char)(value.Length + 32)}{value}";
         }
 
         private byte[] EncodeField(string value)
