@@ -151,8 +151,21 @@
 
                             <Button Grid.Row="1" Grid.Column="4" Grid.ColumnSpan="2" Content="Place Order" Command="{Binding PlaceOrderCommand}" Margin="5" Padding="10,5"/>
                         </Grid>
-                        <TextBox Text="{Binding SleMessages}" IsReadOnly="True" Height="100" VerticalScrollBarVisibility="Auto" Margin="5"/>
                     </StackPanel>
+                </GroupBox>
+
+                <GroupBox Header="Order Status" Padding="10" Margin="0,10,0,0">
+                    <DataGrid ItemsSource="{Binding OrderUpdates}" AutoGenerateColumns="False" IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Ref" Binding="{Binding InternalReference}" Width="*"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding OrderStatus}" Width="*"/>
+                            <DataGridTextColumn Header="Exch. Order No." Binding="{Binding ExchangeOrderNumber}" Width="*"/>
+                            <DataGridTextColumn Header="Cum. Qty" Binding="{Binding CumulatedQuantity}" Width="*"/>
+                            <DataGridTextColumn Header="Rem. Qty" Binding="{Binding RemainingQuantity}" Width="*"/>
+                            <DataGridTextColumn Header="Avg. Price" Binding="{Binding AveragePrice}" Width="*"/>
+                            <DataGridTextColumn Header="Reject Reason" Binding="{Binding RejectReason}" Width="2*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
                 </GroupBox>
             </StackPanel>
         </ScrollViewer>
