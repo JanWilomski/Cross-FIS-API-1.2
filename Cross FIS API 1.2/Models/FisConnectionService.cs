@@ -70,9 +70,10 @@ namespace Cross_FIS_API_1._2.Models
 
         public async Task PlaceOrder(Order order, string user)
         {
+            string user1 = user;
             if (!IsConnected || _stream == null) return;
             Debug.WriteLine($"Placing order: {order.Instrument.Symbol}, {order.Quantity}@{order.Price}, Side: {order.Side}, Validity: {order.Validity}, ClientType: {order.ClientCodeType}");
-            byte[] orderRequest = BuildOrderRequest(order, user);
+            byte[] orderRequest = BuildOrderRequest(order, user1);
             Debug.WriteLine($"Order request: {Encoding.ASCII.GetString(orderRequest)}");
             await _stream.WriteAsync(orderRequest, 0, orderRequest.Length);
         }
@@ -136,6 +137,21 @@ namespace Cross_FIS_API_1._2.Models
         private byte[] BuildOrderRequest(Order order, string user)
         {
             Debug.WriteLine($"Order Instrument Symbol in BuildOrderRequest: {order.Instrument?.Symbol ?? "NULL"}");
+            // Add null check for order.Instrument
+            if (order.Instrument == null)
+            {
+                throw new ArgumentNullException(nameof(order.Instrument), "Instrument cannot be null when building an order request.");
+            }
+
+            // *** NEW DEBUGGING FOR 'user' ***
+            if (user == null)
+            {
+                Debug.WriteLine("CRITICAL ERROR: 'user' parameter is NULL in BuildOrderRequest!");
+                throw new ArgumentNullException(nameof(user), "User parameter cannot be null.");
+            }
+            Debug.WriteLine($"User parameter in BuildOrderRequest: '{user}' (Długość: {user.Length})");
+            // *** END NEW DEBUGGING ***
+
             var dataBuilder = new List<byte>();
             // B - User Number
             dataBuilder.AddRange(Encoding.ASCII.GetBytes(user.PadLeft(5, '0')));
@@ -152,7 +168,29 @@ namespace Cross_FIS_API_1._2.Models
             var orderData = new StringBuilder();
 
             // #0 Side (1 for Buy, 2 for Sell)
-            orderData.Append(EncodeGlField("0", order.Side == 'B' ? "1" : "2"));
+            // Debugging: Check order.Side value
+            Debug.WriteLine($"Order.Side value: {order.Side}");
+            string sideValue = (order.Side == 'B' ? "1" : "2");
+            Debug.WriteLine($"Side value for EncodeGlField: {sideValue}");
+
+            // Debugging: Check if orderData is null (should not be)
+            if (orderData == null)
+            {
+                Debug.WriteLine("ERROR: orderData is null!");
+                // This should not happen, but adding for extreme debugging
+                throw new InvalidOperationException("orderData StringBuilder is null.");
+            }
+
+            // Debugging: Check if EncodeGlField returns null (should not)
+            string encodedSideField = EncodeGlField("0", sideValue);
+            Debug.WriteLine($"Encoded Side Field: {encodedSideField}");
+            if (encodedSideField == null)
+            {
+                Debug.WriteLine("ERROR: EncodeGlField returned null!");
+                throw new InvalidOperationException("EncodeGlField returned null.");
+            }
+
+            orderData.Append(encodedSideField);
 
             // #1 Quantity
             orderData.Append(EncodeGlField("1", order.Quantity.ToString()));

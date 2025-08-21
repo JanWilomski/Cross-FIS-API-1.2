@@ -1,0 +1,2570 @@
+FIS Market Data API - WSE (Warsaw Stock
+Exchange)
+Version 2.0
+February 2022
+
+Revision History
+Version
+#
+
+Date
+
+Author/Editor
+
+Version/Revision Comments
+
+1.0
+
+November
+2016
+
+Sabria
+BENHAMIDA
+
+Creation of a new Manual format
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+1
+
+Version
+#
+
+Date
+
+Author/Editor
+
+Version/Revision Comments
+
+1.1
+
+November
+2016
+
+Sabria
+BENHAMIDA
+
+Order Updates:
+Addition of the following fields:
+619 FIX tag 55
+624 Session Id
+625 Session name IN
+626 Session name OUT
+627 Route name
+635 FIX tag 100
+760 First Exchange Order Id
+764 GMT Stream date
+797 Quantity pending
+845 Client ID
+883 External party
+1014 Previous validity
+1069 Core Message Sending Timestamp 1070 Core Message Receipt Timestamp
+1072 Core Trade Timestamp
+1073 Core Acknowledge Timestamp
+1085 Order server creation date
+1115 Reject reason
+1200 Cumul Reverse Trade Quantity
+1267 AP Client Reference ID
+1358 User ID :
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+2
+
+Version
+#
+
+Date
+
+Author/Editor
+
+Version/Revision Comments
+
+1.2
+
+August
+2017
+
+Sabria
+BENHAMIDA
+
+Market DATA Updates:
+1. Update of the definition of the field MR#6 Last Trade Time: support microsecond
+level granularity/Time Zone UTC (format HHMMSS.ssssss)
+2. Update of the definition of the field MR#100 Last OTC Transaction Time:
+Support microsecond-level granularity, Time Zone UTC (Format
+HHMMSS.ssssss)
+3. Update of the values for the field MR#152 Expression Unit Type
+Trading Updates:
+1. Addition of the new value ‘P’ to the field #17 Client Code Type
+2. Addition of the field #1470 Client Identification Code
+3. Addition of the field #1482 Execution Decision Maker ID
+4. Addition of the field #1488 Execution Decision Maker Type
+5. Addition of the field #1483 Exchange Investment Decision Maker ID
+6. Addition of the field #1489 Investment Decision Maker Type
+7. Addition of the field #1449 Direct Electronic Access
+8. Addition of the field #1481 Waiver Indicator
+9. Addition of the field #1075 AP Message Sending Timestamp
+10. Addition of the field #1076 AP Message Receipt Timestamp
+11. Addition of the fields #1532: Confirmation for value, #1533: Confirmation for
+volume and #1534 Confirmation for Collar with their values.
+12. Updates of the fields: #1077/#1078/#1080: Trade, Acknowledge and Reject
+Timestamps. These fields support microsecond-level granularity, Time Zone
+UTC
+13. Update of the description of the field #13 Exchange Trade number: “this field is
+mapped with WSE UTP “Execution ID”
+
+1.3
+
+September
+2017
+
+Sabria
+BENHAMIDA
+
+Addition of the list of MIFID II generic fields for Trading and Market Data.
+
+1.4
+
+September
+2017
+
+Sabria
+BENHAMIDA
+
+Update the descriptions of the fields #13 and #51.
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+3
+
+Version
+#
+
+Date
+
+Author/Editor
+
+Version/Revision Comments
+
+1.5
+
+October
+2017
+
+Sabria
+BENHAMIDA
+
+Remove the value ‘2’ from the fields #1488 and #1489.
+Update some definition of MIFID II fields.
+Addition of the value ‘4’ Algo to the fields #1494 and #1497.
+
+1.6
+
+October
+2018
+
+Sabria
+BENHAMIDA
+
+Remove the MR”30 Number of order messages and the CRVR#0 Last Previous
+Price.Add the CRVR#142 Liquidity Group with values.
+
+1.7
+
+December
+2018
+
+Sabria
+BENHAMIDA
+
+Addition of the field #352 Trader Mandator Code in Trading section
+
+1.8
+
+June 2019
+
+Sabria
+BENHAMIDA
+
+Update the field #17
+
+1.9
+
+April 2020
+
+Sabria
+BENHAMIDA
+
+This Manual is only for Market Data.
+Addition of the fields MR #65, #66, #234, #235, #236;
+
+2.0
+February
+2022
+
+Sabria
+BENHAMIDA
+
+Addition of the fields:
+MR#158 Total Quantity ACT (OTC)
+MR#200 Off Exchange Open Price (OTC)
+MR#201 Off Exchange High Price (OTC)
+MR#202 Off Exchange Low Price (OTC)
+MR#221 Lot Size
+MR# 90 Amount Exchanged OTC
+MR# 226 Transaction Date OTC
+
+How is this document organised?
+This document is made up of following sections.
+• The first section (Chapter 2) indicates requests which can be used with the SLC WSEUTP. It indicates also, the available
+markets.
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+4
+
+• The second section (Chapter 3) explores the message format of the Market Data requests MR and CRVR.
+
+MARKET DATA
+Requests and markets available
+Available Requests
+The available requests for WSEUTP are:
+
+Number
+
+Name
+
+Question
+
+1100
+
+Connection
+
+1102
+
+Disconnection
+
+1000-1001-1002
+
+Stock watch
+
+1004-1005-1006
+
+Limits
+
+1016-1017-1018
+
+Option stock synthesis
+
+1020-1021-1022
+
+Option best prices
+
+1024
+
+Historical
+
+1028
+
+Intraday
+
+1048
+
+Last trades
+
+5032
+
+New text
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+5
+
+Number
+
+Name
+
+5033-5034
+
+News
+
+5037-5038
+
+Ticker
+
+5108-5019-5110
+
+Dictionary
+
+5144
+
+Instrument information
+
+5228-5229-5230
+
+Instrument information (New : Refreshed request)
+
+5248-5249-5250
+
+Tick Size
+
+5152-5153-5154
+
+Strategy dictionary
+
+5208-5210
+
+Limits plus
+
+5276-5249
+
+DICX
+
+Reply
+
+1100
+
+Connection
+
+1102
+
+Disconnection
+
+1000-1001-1003
+
+Stock watch
+
+1004-1005-1007
+
+Limits
+
+1016-1017-1019
+
+Option stock synthesis
+
+1020-1021-1023
+
+Option best prices
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+6
+
+Number
+
+Name
+
+1024
+
+Historical
+
+1028
+
+Intraday
+
+1048
+
+Last trades
+
+5032
+
+New text
+
+5033-5035
+
+News
+
+5108-5109-5111
+
+Dictionary
+
+5144
+
+Instrument information
+
+5228-5229-5231
+
+Instrument information (New : Refreshed request)
+
+5248-5249-5251
+
+Tick Size
+
+5152-5153-5155
+
+Strategy dictionary
+
+5208-5209-5211
+
+Limits plus
+
+5276-5249
+
+DICX
+
+Available exchanges
+WSE is composed of one exchange:
+
+Number
+
+Name
+
+40
+
+WSE
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+7
+
+Available markets
+The available markets for WSE are:
+
+Number
+
+Name
+
+1
+
+Bonds
+
+2
+
+Cash
+
+3
+
+Options
+
+4
+
+Future
+
+5
+
+Index
+
+9
+
+OPCVM
+
+16
+
+Growth market (EURNM)
+
+17
+
+Future Indices
+
+20
+
+Warrants
+
+SLC Specific fields
+Instrument identifiers
+With UTP, WSE is introducing a new instrument classification depending on the type of trade:
+• Normal instrument (for normal orders) – the Trading Code will be the ISIN code
+• Instrument for Block-BISO Trades – the Trading Code will be ISIN where the last character is replaced by ‘B’
+• Instrument for IPO – the Trading Code will be ISIN where the last character is replaced by ‘I’
+• Instrument for Tender Offer – the Trading Code will be ISIN where the last character is replaced by ‘T’
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+8
+
+At the end this will mean 4 different instruments disseminated on WSE side
+SunGard will disseminate the instruments based on this classification. For more visibility, the mnemonic for Block-BISO, IPO and
+Tender Offer will have a suffix depending on the instrument type. See the example below.
+
+WSE XDP
+Mapping
+
+Symbol (Mnemo)
+
+Stock code
+
+ISIN
+
+Group
+
+Comment
+
+Mnemo for Cash /
+Instrument Name for
+others
+
+556/
+SymbolIndex
+
+556/
+TradingCode
+
+556/
+InstrumentGroupCode
+
+ANT
+
+000277
+
+PLANTI000012
+
+NM
+
+Normal instrument
+
+ANT_B
+
+000278
+
+PLANTI00001B
+
+OT
+
+Block, BISO, Trade
+Report instrument
+
+ANT_I
+
+000279
+
+PLANTI00001I
+
+IP
+
+IPO instrument
+
+ANT_T
+
+000387
+
+PLANTI00001T
+
+TO
+
+Tender Offer
+Instrument
+
++ ‘_‘
++ instrument type id
+
+Example of a
+cash
+instrument
+
+Stock watch (1000-1001-1003)
+Position
+
+Name
+
+Value
+
+H1
+
+Mnemo
+
+Mnemonic code
+
+0
+
+Bid quantity
+
+1
+
+Bid price
+
+2
+
+Ask price
+
+3
+
+Ask quantity
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+9
+
+Position
+
+Name
+
+Value
+
+4
+
+Last trade price
+
+5
+
+Last trated quantity
+
+6
+
+Last trade time
+
+8
+
+Percentage variation
+
+9
+
+Total quantity
+exchanged
+
+10
+
+Opening price
+
+11
+
+Higher
+
+Computed by SLC
+
+12
+
+Lower
+
+Computed by SLC
+
+13
+
+Suspension indicator
+
+The suspension indicator has been increased to 4 digits (See API SLC V5 general
+document).
+
+support microsecond level granularity/TimeZone UTC (format HHMMSS.ssssss)
+
+Computed by SLC
+
+See Trading Phase and Suspension Indicator chapter
+
+14
+
+Variation sign
+
+16
+
+Closing price
+
+17
+
+Minimum lot
+
+18
+
+Proportional average
+price
+
+Also called “GL VWAP”
+
+21
+
+Open position
+
+For Derivatives
+
+22
+
+Upper reservation level
+
+Dynamic High Collar
+
+Yesterday’s closing price
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+10
+
+Position
+
+Name
+
+Value
+
+24
+
+Lower reservation level
+
+Dynamic Low Collar
+
+29
+
+Number of trades
+
+Computed by SLC
+
+33
+
+Market
+
+See section Available markets
+
+34
+
+Stockname
+
+36
+
+Place of quotation
+
+See section Available exchanges
+
+37
+
+Group Number
+
+Mapped with WSE XDP 556/InstrumentGroupCode
+
+41
+
+Number of decimals
+
+42
+
+Local code
+
+Mapped with WSE XDP SymbolIndex
+
+43
+
+Clearing price/
+settlement price
+
+Today’s closing price
+
+44
+
+Amount exchanged
+
+Computed by SLC
+
+46
+
+Date of Quotation
+
+Last date known for a trade
+
+53
+
+Adjustment Coefficient
+
+Only for Bonds
+
+56
+
+Time of Quotation
+Resumption
+
+Time when the halt will be finished
+
+64
+
+Theoretical opening
+price
+
+Also called IMP (Indicative Matching Price)
+
+65
+
+Last Bid Time
+
+Exchange Publication Timestamp for new first Bid limit Time.
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+11
+
+Position
+
+Name
+
+Value
+
+66
+
+Last Ask Time
+
+Exchange Publication Timestamp for new first Ask limit Time.
+
+67
+
+Trade ID
+
+Trade ID number
+
+68
+
+Theoretical opening
+quantity
+
+Also called IMQ (Indicative Matching Quantity)
+
+69
+
+Country Code
+
+Country code of location for the corporate headquarters of the company that issued
+the instrument (WSE XDP 556/IssuingCountryCode)
+
+70
+
+Currency
+
+Mapped with WSE XDP 556/TradingCurrency
+
+73
+
+Transaction type
+
+B for normal orders
+D for Cross Trades
+C for Off Exchange Trades
+A for Normal Trade Cancel
+H for Off Exchange Trade Cancel
+Can be completed with MR 188
+
+76
+
+Theoretical opening
+variation
+
+Computed by SLC
+
+86
+
+Last Price OTC
+
+Last price in case of Off Exchange Trade
+
+88
+
+ISIN Code
+
+Trading Code (it’s not the real ISIN for Block, IPO and Tender offer segments)
+
+89
+
+Free settlement Delay
+
+90
+
+Amount Exchanged
+OTC
+
+cumulative total value of executed OTC trades when MR#73 =C
+
+98
+
+Previous close
+
+Closing Price of 2 days ago
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+12
+
+Position
+
+Name
+
+Value
+
+99
+
+Last quantity OTC
+
+Last quantity in case of Off Exchange Trade
+
+100
+
+Last trade time OTC
+
+Support microsecond-level granularity, TimeZone UTC (Format HHMMSS.ssssss)
+
+101
+
+Type of Pricing
+
+A = American
+E = European
+O = Others (for futures)
+
+102
+
+Strike
+
+104
+
+Type of value
+
+105
+
+Support value 1
+underlying option
+
+109
+
+Expiry date
+
+131
+
+Type Of Instrument
+
+136
+
+Nominal Value
+
+Populated only for bonds
+
+140
+
+Trading phase
+
+See Trading Phase and Suspension Indicator chapter
+
+145
+
+Fixing Close
+
+Today’s closing price
+
+149
+
+GLID+ Underlying
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+13
+
+Position
+
+Name
+
+Value
+
+152
+
+Type Of expression
+Unit
+
+Unit in which the security is quoted.
+Valid values:
+1 By coin
+2 Percentage
+3 Yield
+4 Basis point
+
+153
+
+Reference price
+
+154
+
+Type reference price
+
+Valid values:
+P : Previous reference price: In the morning we receive the previous reference price.
+R : Reference price
+
+158
+Total Quantity ACT
+(OTC)
+
+Total volume traded off exchange for the instrument when the MR#73 = C
+
+160
+
+VWAP
+
+Filled end of day
+
+180
+
+Tick size ID
+
+188
+
+Transaction type
+detailed
+
+197
+
+Short sell flag
+
+200
+Off Exchange Open
+Price (OTC)
+
+Off Exchange Open Price (OTC)
+
+Off Exchange High
+Price (OTC)
+
+Off Exchange High Price (OTC)
+
+Off Exchange Low
+Price (OTC)
+
+Off Exchange Low Price (OTC)
+
+201
+
+202
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+14
+
+Position
+
+Name
+
+Value
+
+Lot Size
+
+Lot Size
+
+222
+
+Contract size
+
+Mapped with WSE Multiplier
+
+226
+
+Transaction Date OTC
+
+227
+
+Accrued Interest rate
+
+234
+
+MDS Reception
+Timestamp for a Trade
+
+Market Data Feed Handler Reception Timestamp for a Trade in order to calculate the
+Latency.
+
+235
+
+MDS Reception
+Timestamp for BBO
+
+Market Data Feed Handler Reception Timestamp in order to calculate the latency.
+
+236
+
+MDS Thread ID
+
+The purpose of this field is to be able to measure the latency per MDS thread.
+
+221
+
+Trading Phase and Suspension Indicator
+Phase
+
+State
+
+MR 140 Trading Phase
+
+MR 13 first character Group State
+
+Call
+
+Early Monitoring
+
+EAMO
+
+B
+
+Call
+
+Core Call
+
+COCA
+
+P
+
+Auction
+
+Core Auction
+
+COAU
+
+O
+
+Continuous
+
+Core Continuous
+
+COCO
+
+Call
+
+Closing Call
+
+CLCA
+
+P
+
+Auction
+
+Closing Auction
+
+CLAU
+
+O
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+15
+
+Phase
+
+State
+
+MR 140 Trading Phase
+
+MR 13 first character Group State
+
+Continuous
+
+Core Trading At Last
+
+CTAL
+
+L
+
+Call
+
+Core Monitoring
+
+COMO
+
+M
+
+Call
+
+Late Monitoring
+
+LAMO
+
+M
+
+Continuous
+
+Late Trading At Last
+
+LTAL
+
+L
+
+Call
+
+Halted
+
+HALT
+
+K
+
+Call
+
+Closed
+
+CLSD
+
+C
+
+The second character of the MR 13 (Suspension Indicator) indicates whether an instrument is suspended / halted:
+
+MR 13 second character Susp. Indicator
+
+Explanation
+
+‘‘
+
+Trading permitted, no halt
+
+A
+
+Auction
+
+C
+
+Closed
+
+S
+
+Suspended, No particular reason
+
+S
+
+Suspended, Trade price outside collar
+
+M
+
+Manual Halting by Market Operations
+
+R
+
+Regulatory Halting by Market Operations
+
+For an explanation regarding the third and fourth characters which are standard, please refer to the Feed Valdi API generic
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+16
+
+documentation (API SLC V5).
+
+Instrument information CRVR (5228)
+Position
+
+Name
+
+8
+
+Previous capital
+
+17
+
+Quotation place
+
+18
+
+Number of stock certificate
+
+Value
+
+Number of shares issued/bonds outstanding after payments
+Mapped with WSE XDP 556/ NumberInstrumentCirc
+
+25
+
+Nominal
+
+49
+
+Min Order Size
+
+Minimum Quantity
+
+51
+
+Max Order Size
+
+Maximum Quantity
+
+53
+
+Side of the option
+
+C = Call, P = Put
+
+54
+
+Exercise price of the option
+
+Strike price
+
+56
+
+Expiry of the option
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+17
+
+Position
+
+Name
+
+Value
+
+59
+
+Market Segment
+
+Valid values:
+‘NM’ – Cash Normal Market
+‘OT’ – Cash Block Trading
+‘TO’ – Tender Offer
+‘IP’ – IPO
+‘IN’ – Investment
+‘LE’ – Leverage
+‘DN’ – Derivatives Normal Market
+‘DB’ – Derivatives Block Trading
+‘IX’ – WSE Indices
+
+65
+
+Currency code
+
+78
+
+Delivery Type
+
+C = Cash, P = Physical
+
+80
+
+Exercise Price Type
+
+0 = Total price
+
+85
+
+Real ISIN
+
+Mapped with WSE XDP 556/Instrument Code. It’s the real
+ISIN of the instrument
+
+100
+
+Min Static range
+
+Low Dynamic Collar
+
+101
+
+Max Static range
+
+High Dynamic Collar
+
+142
+
+Liquidity group
+
+Ranking according to liquidity
+Values:
+A: Highly liquid
+B: Liquid
+D: No Liquid
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+18
+
+Position
+
+Name
+
+Value
+
+144
+
+CFI Code
+
+Mapped with WSE XDP 556/CFI
+
+147
+
+Industry ID
+
+Mapped with WSE XDP 556/ICB
+
+152
+
+Corporate Action
+
+„00? - No specific event
+„01? - Dividend payment in cash or in stocks
+„03? - Interest payment (bonds for which the price is
+expressed in % of the nominal)
+„04? - Split
+„05? - Bonus (attribution)
+„09? - Reverse split
+„12? - Capital amortization
+„17? - Purge of the order book
+„18? - Rights
+„19? - Bonus and Rights
+„20? - Bonus also entitled for Rights
+„21? - Rights also entitled for Bonus
+
+160
+
+Issuer
+
+For Bonds and Warrants
+
+203
+
+MIC
+
+MIC Code
+„XWAR? - WSE
+„XNCO? - New Connect
+
+225
+
+Underlying ISIN
+
+Underlying ISIN code for derivatives
+
+283
+
+Security Type Code /Exchange Instrument
+Type Code
+
+This field will contain the exact values sent by the exchange
+in the 556/TypeOfInstrument field.
+
+315
+
+Closing date
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+19
+
+Position
+
+Name
+
+Value
+
+316
+
+Settlement price of previous day
+
+317
+
+Variation precision
+
+Always 16 = Closing Price
+
+331
+
+Settlement price type
+
+Valid values:
+‘3’: End of day (daily settlement price)
+‘1’: Final (final settlement price)
+‘2’: Theoretical Indicative (Theoretical price)
+
+342
+
+Trading Quantity Unit
+
+U : Unit
+
+398
+
+Exchange Instrument Type
+
+This field provide a full description to complete the Exchange
+Instrument Type Code/ Security Type Code (complete To
+CRVR 283)
+
+400
+
+Exchange Instrument Sub Type
+
+401
+
+Barrier Min Price
+
+For Warrants and OPCVM
+
+402
+
+Barrier Max Price
+
+For Warrants and OPCVM
+
+406
+
+Bond Price Type
+
+1 : Clean when the TypeOf UnitExp = 2 in the message 556
+2 : Dirty when the TypeOfUnitExp = 3 in the message 556
+
+Mifid II Market data fields:
+API
+Message
+
+Number
+
+Name
+
+VALUES/Description
+
+CRVR
+
+144
+
+CFI Code
+
+6 chars
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+20
+
+Position
+
+Name
+
+Value
+
+MR
+
+21
+
+Open Interest
+
+Quantity
+
+MR
+
+141
+
+Traded Indicator
+
+M = MiFID tradable
+Other values= E (not tradable), I (tradable), O (IPO), S
+(sell only)
+
+CRVR
+
+498
+
+Order to Trade Ratio (OTR) as
+NUMBER
+
+number
+
+CRVR
+
+497
+
+Order to Trade Ratio (OTR) in
+VOLUME
+
+volume (i.e. numerical)
+
+MR
+
+198
+
+Stressed (fast) market
+
+1= No, 2= Yes
+
+MR
+
+180
+
+Tick size table logical Id
+
+Reference to TCKSZ table
+
+TCKSZ
+
+All
+
+Tick Size Table
+
+Tick Sizes in price ranges
+
+MLP
+
+11
+
+Time
+
+HHMMSS.dddddd: Microseconds - (dddddd is faction of
+a second)
+
+MR
+
+6
+
+Last Trade Time
+
+time stamp (microseconds)
+
+MR
+
+13
+
+Trading Halt
+
+Various values depending on exchange; some
+standardized. Normally has first byte = 'H' or 'S'
+
+MR
+
+140
+
+Trading Halt
+
+Various values depending on exchange
+
+CRVR /
+MR
+
+65 /70
+
+Currency
+
+char (3 char currency code)
+
+CRVR
+
+203
+
+Operating MIC
+
+char (MIC code= 4 char)
+
+MR
+
+88
+
+ISIN
+
+char (ISIN)
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+21
+
+Position
+
+Name
+
+Value
+
+MR /
+CRVR
+
+34 / 214
+
+Stock Name / Long Stock Name
+
+string
+
+MR
+
+104
+
+Type of Value (instrument)
+
+see API docs for domain values
+
+MR
+
+105 / 149
+
+First Degree underlying/ Root
+underlying
+
+string
+
+MR
+
+102
+
+Strike Price
+
+numerical
+
+CRVR /
+MR
+
+65 /70
+
+Currency
+
+char (3 char currency code)
+
+MR
+
+101
+
+Maturity Type (Option)
+
+American, Bermudez, European etc.
+
+CRVR
+
+378
+
+Maturity
+
+date
+
+MR
+
+109
+
+Expiry Date
+
+date
+
+CRVR
+
+78
+
+Delivery Type
+
+Single Char: Cash, Holder Choice, Issuer Choice,
+Physical, Title
+
+MR
+
+74
+
+Trading phase of execution
+
+See values in API
+
+MR
+
+75
+
+Trade indicator
+
+See values in API
+
+MR
+
+61
+
+Trade publication Mode
+Indicator
+
+enum
+
+CRVR
+
+142
+
+Liquidity group
+
+• A Highly liquid
+• B Liquid
+• C Quiet liquid
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+22
+
+Position
+
+Name
+
+Value
+
+MR
+
+157
+
+LIS- Large in Scale (Amount/
+Capital) AKA Minimum Hidden
+Size Capital
+
+LIS expressed as amount/ capital (price * quantity)
+
+CRVR
+
+184
+
+LIS- Large in Scale (Quantity) /
+Minimum Hidden Qty
+
+Minimum order size that corresponds to the “LIS”: Large
+In Scale Criteria- this field is for LIS as a quantity
+
+CRVR
+
+182
+
+SMS- Standard market size
+
+numerical
+
+CRVR
+
+502
+
+SSTI- Size specific to
+instruments
+
+numerical
+
+CRVR
+
+499
+
+Capped Volume Indicator
+
+Enum: 0 No caps in place 1 Dark Capped; 2 NT capped;
+3 Dark and NT capped
+
+Updates history
+Version
+
+1.0
+
+Date
+
+March 2012
+
+Author
+
+CNG
+
+SLE
+version
+
+10.1
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+23
+
+Version
+
+1.0
+
+Object
+
+Creation from API_WSE v19
+SLE :
+Delete of the OTC and the Quote requests (temporarily: will be added in later version)
+Change of the fields #2 Modality,#3 Price,#4 Validity,#9 Display Quantity,#10 Client Reference, field #19 Clearing Firm
+, #21 Posting Mode, #51 Exchange Trade Number,#53 Trade Type,#81 Memo,#140 Elimination Reason
+Add of the fields: #17 Client Code Type , #24 Compensation Mode 1, #99 Negociation Code,192#Currency, #241
+Work List, #251 Price Increment Type, #294 WorkLimitMaxPrice, #762 Confirmation
+Delete of the fields: #28 Anonymous Flag, #84 NDS Account, #114 Currency,#131 Order Type, #132 NDS Account
+Clearer, #133 Sub Account, #137 Number of Settlement, #138 Settlement Price; #312 Settlement Information; #384
+Trade value
+In request 2019 , delete of the fields #136 Settlement Date, #Number of Settlement, #138 Settlement Price, #140
+Elimination Reason
+Add in the available markets: options and index
+
+Version
+
+2.0
+
+Date
+
+March 2012
+
+Author
+
+CNG
+
+SLE
+version
+
+10.1
+
+Object
+
+SLE :
+Add of the OTC, the Cross and the Quote requests
+Modification of the values of the field #24 Mode Compens 1, #57 Acknowledgement Type
+Modification of the fields #91 Application side, #147 Floor Trader ID, #181 Previous Internal Reference, #484 Order
+Side Qualifier, #762 Confirmation
+Delete warning in description of field #8 Minimum quantity
+Change of the fields #146 Trader Id to #147 Floor Trader Id
+Delete of the fields #50 Execution counterpart, #212 Peak order remaining quantity
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+24
+
+Version
+
+2.1
+
+Date
+
+May 2012
+
+Author
+
+CDE, FOR
+
+SLE version
+
+10.1
+
+SLC version
+
+11.0.100
+
+Object
+
+SLC:
+Add SLC part
+SLE:
+Add mandatory fields in message 2000
+Add for each message whether it is supported by API Messenger.
+Add field #569 Trade Liquidity Provider
+Replace field #113 by field #227 Order Type
+Modification of the description and value of Stock Code, #21 Posting Mode, #24 Compensation Mode 1
+Modification of the description of value D for field #4 Validity
+Add field #1234 IOI ID in OTC request, to answer to an IOI
+
+Version
+
+3.0
+
+Date
+
+July 2012
+
+Author
+
+FOR
+
+SLE version
+
+10.1
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+25
+
+Version
+
+3.0
+
+Object
+
+SLE:
+Field 241 : Change value 3 in D
+Field 306 : Change value -1 in ‘ ‘
+
+Version
+
+3.1
+
+Date
+
+November 2012
+
+Author
+
+SBE
+
+SLE version
+
+10.1
+
+SLC version
+
+11.0.100
+
+Object
+
+SLE:
+Replace field #227 by field #16 Order Type
+
+Version
+
+3.1
+
+Date
+
+November 2012
+
+Author
+
+SBE
+
+SLE version
+
+10.1
+
+SLC version
+
+11.0.100
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+26
+
+Version
+
+3.1
+
+Object
+
+SLE:
+Replace field #227 by field #16 Order Type
+
+Version
+
+3.2
+
+Date
+
+January 2013
+
+Author
+
+SBE
+
+SLE version
+
+10.1
+
+SLC version
+
+12.0.100
+
+Object
+
+SLE:
+Addition of new values in the field #306 Second Client Order Type
+
+Version
+
+3.3
+
+Date
+
+Fabruary 2013
+
+Author
+
+SBE
+
+SLE version
+
+10.1
+
+SLC
+version
+
+12.0.100
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+27
+
+Version
+
+3.3
+
+Object
+
+SLE:
+• Addition of new field #132 to the request On and Off Exchange.to map the field Account at the Exchange
+side.
+• Modification of the field #10: This field is now mapped with the field Client ID at the exchange side.
+• Rename the field #19 from Clearing Firm to Allocation Code
+• Addition of the field #19 Allocation Code to OTCs orders.
+• Deletion of the field #168 Numbank 1
+
+Version
+
+3.4
+
+Date
+
+Mars 2013
+
+Author
+
+SBE
+
+SLE version
+
+10.1
+
+SLC version
+
+12.0.100
+
+Object
+
+Addition of the section “Order Modification”
+
+Version
+
+3.5
+
+Date
+
+November 2013
+
+Author
+
+CNG
+
+SLE version
+
+10.1
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+28
+
+Version
+
+3.5
+
+SLC version
+
+12.0.100
+
+Object
+
+SLC:
+• Modification the list of the markets.
+• Remove the column Pilot or Final version of Stock Watch and CRVR.
+SLE:
+• Modification the list of the markets.
+• Remove the note in Native Order.
+• Remove the note in OTC.
+• Remove the field #82
+• Add the fields #1238, #1267.
+• Modification of the API field of #4, #10.
+• Modification of the field #484 Order Side Qualifier
+
+Version
+
+3.6
+
+Date
+
+January 2014
+
+Author
+
+S. Benhamida
+
+SLE version
+
+10.1.13
+
+SLC version
+
+12.0.100 (starting from 12.0.100.818090)
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+29
+
+Version
+
+3.6
+
+Object
+
+SLC:
+• Add Market #17 to the list of Feed Markets for WSE.
+• Add details to the fields MR: #6, #30 and #100.
+• Add details to the fields CRVR #100 and #101.
+• New format of the field #13 Suspension Indicator
+• Add the value ‘S’ to second character of the field MR #13.
+• Add the following fields to the request MR:
+• #104 Type of value
+• #197 Short sell flag
+• #222 Contract size
+• #227 Accrued interest rate
+• Add the following fields for the request CRVR:
+• #401 Barrier Min Price
+• #402 Barrier Max Price
+SLE:
+• Add Market #17 to the list of Order Markets for WSE.
+• Addition of new values to the field #762 for Order Management
+• More detail for existing values of the field #762.
+
+Version
+
+3.7
+
+Date
+
+Mars 2014
+
+Author
+
+Sabria BENHAMIDA
+
+SLE version
+
+10.1.13
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+30
+
+Version
+
+3.7
+
+SLC version
+
+12.0.100
+
+Object
+
+Modification of the field #13 Exchange number.
+
+Version
+
+3.8
+
+Date
+
+October 2014
+
+Author
+
+Sabria BENHAMIDA
+
+SLE version
+
+10.1.13
+
+SLC version
+
+12.0.100
+
+Object
+
+SLC:
+Addition of the field MR #154 with values.
+Addition of the field CRVR #331 with values.
+SLE:
+Addition of the field #314 in the request 2000 and 2019.
+Modification of value in the field #569.
+
+Version
+
+3.9
+
+Date
+
+November 2014
+
+Author
+
+Sabria BENHAMIDA
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+31
+
+Version
+
+3.9
+
+SLE version
+
+11.1
+
+SLC version
+
+12.0.100
+
+Object
+
+SLE:
+Addition of the field #210 “Alert message Code” This field is available since the version 11.1 of the SLE
+
+Version
+
+4.0
+
+Date
+
+November 2014
+
+Author
+
+Sabria BENHAMIDA
+
+SLE version
+
+11.1
+
+SLC version
+
+12.0.100
+
+Object
+
+SLE:
+Addition of values to the field #17 Client Code Type for OTC orders.
+
+Version
+
+4.1
+
+Date
+
+April 2015
+
+Author
+
+Sabria BENHAMIDA
+
+SLE version
+
+11.1
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+32
+
+Version
+
+4.1
+
+SLC version
+
+12.0.100
+
+Object
+
+SLC:
+Addition of the field MR #53 only for Bonds
+
+Version
+
+4.2
+
+Date
+
+April 2015
+
+Author
+
+Sabria BENHAMIDA
+
+SLE version
+
+11.1
+
+SLC version
+
+12.0.100
+
+Object
+
+SLC:
+Addition of the fields CRVR #342 and #406.
+
+Version
+
+4.3
+
+Date
+
+June 2015
+
+Author
+
+Sabria BENHAMIDA
+
+SLE version
+
+11.1
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+33
+
+Version
+
+4.3
+
+SLC version
+
+12.0.100
+
+Object
+
+SLC:
+Remove the field MR #204.
+Addition of the field MR #89.
+Addition of the field MR #46.
+
+Version
+
+4.4
+
+Date
+
+October 2015
+
+Author
+
+Sabria BENHAMIDA
+
+SLE version
+
+11.1
+
+SLC version
+
+12.0.100
+
+Object
+
+SLC:
+Addition of the field MR#74
+
+Version
+
+4.5
+
+Date
+
+November 2015
+
+Author
+
+Sabria BENHAMIDA
+
+SLE version
+
+11.1
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+34
+
+Version
+
+4.5
+
+SLC version
+
+12.0.100
+
+Object
+
+Addition of the trading field #57 Acknowledgment Type and its domain values.
+
+Version
+
+4.6
+
+Date
+
+January 2016
+
+Author
+
+Sabria BENHAMIDA
+
+SLE version
+
+11.1
+
+SLC version
+
+12.0.100
+
+Object
+
+Addition of the Fields:
+CRVR #283 Security Type Code /Exchange Instrument Type Code
+CRVR #398 Exchange Instrument Type
+CRVR #400 Exchange Instrument Sub Type
+
+Version
+
+4.7
+
+Date
+
+February 2016
+
+Author
+
+Sabria BENHAMIDA
+
+SLE version
+
+11.1
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+35
+
+Version
+
+4.7
+
+SLC version
+
+12.0.100
+
+Object
+
+Updates of the values for the field Liquidity Indicator API V3#569.
+Addition of the Trading fields: #1077, #1078, #1080
+
+Version
+
+4.8
+
+Date
+
+April 2016
+
+Author
+
+Sabria BENHAMIDA
+
+SLE version
+
+11.1
+
+SLC version
+
+12.0.100
+
+Object
+
+Addition of the field CRVR#225 Underlying ISIN
+
+Version
+
+4.9
+
+Date
+
+August 2016
+
+Author
+
+Sabria BENHAMIDA
+
+SLE version
+
+11.1
+
+SLC version
+
+12.0.100
+
+Object
+
+The field MR #74 is removed.
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+36
+
+© 2024 FIS and/or its subsidiaries. All Rights Reserved. FIS confidential and proprietary information.
+
+37
+
+

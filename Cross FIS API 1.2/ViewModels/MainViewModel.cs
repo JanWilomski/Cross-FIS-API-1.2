@@ -18,7 +18,7 @@ namespace Cross_FIS_API_1._2.ViewModels
         // SLE Connection Properties
         private string _sleIpAddress = "172.31.136.4";
         private int _slePort = 19593;
-        private string _sleUser = "103";
+        private string _sleUser = "461";
         private string _slePassword = "glglgl";
         private string _sleNode = "24300";
         private string _sleSubnode = "14300";
@@ -167,10 +167,17 @@ namespace Cross_FIS_API_1._2.ViewModels
         {
             if (SelectedInstrument == null) return;
 
+            // Add null check for SleUser
+            if (string.IsNullOrEmpty(_sleUser))
+            {
+                MessageBox.Show("SLE User cannot be empty. Please provide a valid user.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
             Debug.WriteLine($"SelectedInstrument Symbol (from MainViewModel): {SelectedInstrument.Symbol ?? "NULL"}");
             Debug.WriteLine($"SelectedInstrument GLID (from MainViewModel): {SelectedInstrument.Glid ?? "NULL"}");
 
-            var detailsVM = new InstrumentDetailsViewModel(SelectedInstrument, _mdsConnectionService, _fisConnectionService, SleUser);
+            var detailsVM = new InstrumentDetailsViewModel(SelectedInstrument, _mdsConnectionService, _fisConnectionService, _sleUser);
             var detailsWindow = new InstrumentDetailsWindow(detailsVM)
             {
                 Owner = Application.Current.MainWindow

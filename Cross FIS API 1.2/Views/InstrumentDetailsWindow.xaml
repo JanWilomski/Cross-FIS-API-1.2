@@ -1,0 +1,160 @@
+<Window x:Class="Cross_FIS_API_1._2.Views.InstrumentDetailsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModels="clr-namespace:Cross_FIS_API_1._2.ViewModels"
+        mc:Ignorable="d"
+        Title="Instrument Details"
+        Height="600" Width="400"
+        WindowStartupLocation="CenterOwner"
+        Closing="Window_Closing">
+    <Window.Resources>
+        <Style x:Key="HeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Foreground" Value="Gray"/>
+            <Setter Property="Margin" Value="0,5,0,0"/>
+        </Style>
+        <Style x:Key="ValueStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+        </Style>
+    </Window.Resources>
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,15">
+            <TextBlock Text="{Binding Instrument.Name}" FontSize="20" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
+            <TextBlock Text="{Binding Instrument.GlidAndSymbol}" FontSize="12" Foreground="Gray"/>
+            <TextBlock Text="{Binding Details.ISIN, StringFormat={}ISIN: {0}}" FontSize="12" Foreground="Gray"/>
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <GroupBox Header="Market Data" Padding="10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Bid Size" Style="{StaticResource HeaderStyle}"/>
+                            <TextBlock Text="{Binding Details.BidQuantity}" Style="{StaticResource ValueStyle}"/>
+                            <TextBlock Text="Bid Price" Style="{StaticResource HeaderStyle}"/>
+                            <TextBlock Text="{Binding Details.BidPrice}" Foreground="Blue" Style="{StaticResource ValueStyle}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="Ask Size" Style="{StaticResource HeaderStyle}"/>
+                            <TextBlock Text="{Binding Details.AskQuantity}" Style="{StaticResource ValueStyle}"/>
+                            <TextBlock Text="Ask Price" Style="{StaticResource HeaderStyle}"/>
+                            <TextBlock Text="{Binding Details.AskPrice}" Foreground="Red" Style="{StaticResource ValueStyle}"/>
+                        </StackPanel>
+                    </Grid>
+                </GroupBox>
+
+                <GroupBox Header="Trade Data" Padding="10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Last Price" Style="{StaticResource HeaderStyle}"/>
+                            <TextBlock Text="{Binding Details.LastPrice}" Style="{StaticResource ValueStyle}"/>
+                            <TextBlock Text="Last Size" Style="{StaticResource HeaderStyle}"/>
+                            <TextBlock Text="{Binding Details.LastQuantity}" Style="{StaticResource ValueStyle}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="Last Trade Time" Style="{StaticResource HeaderStyle}"/>
+                            <TextBlock Text="{Binding Details.LastTradeTime}" Style="{StaticResource ValueStyle}"/>
+                            <TextBlock Text="Volume" Style="{StaticResource HeaderStyle}"/>
+                            <TextBlock Text="{Binding Details.Volume}" Style="{StaticResource ValueStyle}"/>
+                        </StackPanel>
+                    </Grid>
+                </GroupBox>
+
+                <GroupBox Header="Daily Data" Padding="10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Opening Price" Style="{StaticResource HeaderStyle}"/>
+                            <TextBlock Text="{Binding Details.OpenPrice}" Style="{StaticResource ValueStyle}"/>
+                            <TextBlock Text="High Price" Style="{StaticResource HeaderStyle}"/>
+                            <TextBlock Text="{Binding Details.HighPrice}" Style="{StaticResource ValueStyle}"/>
+                            <TextBlock Text="Low Price" Style="{StaticResource HeaderStyle}"/>
+                            <TextBlock Text="{Binding Details.LowPrice}" Style="{StaticResource ValueStyle}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="Closing Price" Style="{StaticResource HeaderStyle}"/>
+                            <TextBlock Text="{Binding Details.ClosePrice}" Style="{StaticResource ValueStyle}"/>
+                            <TextBlock Text="Variation" Style="{StaticResource HeaderStyle}"/>
+                            <TextBlock Text="{Binding Details.PercentageVariation, StringFormat={}{0:F2}%}" Style="{StaticResource ValueStyle}"/>
+                            <TextBlock Text="Var. Sign" Style="{StaticResource HeaderStyle}"/>
+                            <TextBlock Text="{Binding Details.VariationSign}" Style="{StaticResource ValueStyle}"/>
+                        </StackPanel>
+                    </Grid>
+                </GroupBox>
+
+                <GroupBox Header="Status" Padding="10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Trading Phase" Style="{StaticResource HeaderStyle}"/>
+                            <TextBlock Text="{Binding Details.TradingPhase}" Style="{StaticResource ValueStyle}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="Suspension" Style="{StaticResource HeaderStyle}"/>
+                            <TextBlock Text="{Binding Details.SuspensionIndicator}" Style="{StaticResource ValueStyle}"/>
+                        </StackPanel>
+                    </Grid>
+                </GroupBox>
+
+                <GroupBox Header="Order Entry" Padding="10">
+                    <StackPanel>
+                        <Grid Margin="5">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Label Grid.Row="0" Grid.Column="0" Content="Side:" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding Sides}" SelectedItem="{Binding SelectedSide}" Margin="5"/>
+
+                            <Label Grid.Row="0" Grid.Column="2" Content="Quantity:" VerticalAlignment="Center"/>
+                            <TextBox Grid.Row="0" Grid.Column="3" Text="{Binding OrderQuantity}" Margin="5"/>
+
+                            <Label Grid.Row="0" Grid.Column="4" Content="Price:" VerticalAlignment="Center"/>
+                            <TextBox Grid.Row="0" Grid.Column="5" Text="{Binding OrderPrice}" Margin="5"/>
+
+                            <Label Grid.Row="1" Grid.Column="0" Content="Validity:" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Validities}" SelectedItem="{Binding SelectedValidity}" Margin="5"/>
+
+                            <Label Grid.Row="1" Grid.Column="2" Content="Client Type:" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Row="1" Grid.Column="3" ItemsSource="{Binding ClientCodeTypes}" SelectedItem="{Binding SelectedClientCodeType}" Margin="5"/>
+
+                            <Button Grid.Row="1" Grid.Column="4" Grid.ColumnSpan="2" Content="Place Order" Command="{Binding PlaceOrderCommand}" Margin="5" Padding="10,5"/>
+                        </Grid>
+                        <TextBox Text="{Binding SleMessages}" IsReadOnly="True" Height="100" VerticalScrollBarVisibility="Auto" Margin="5"/>
+                    </StackPanel>
+                </GroupBox>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Window>

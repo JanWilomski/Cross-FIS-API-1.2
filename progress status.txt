@@ -1,0 +1,52 @@
+  Podsumowanie Działania Aplikacji (Stan na teraz)
+
+
+  Aplikacja jest teraz desktopowym klientem, zbudowanym w technologii WPF zgodnie z architekturą MVVM (Model-View-ViewModel). Jej głównym celem jest umożliwienie niezależnego i równoległego zarządzania połączeniami z dwoma kluczowymi serwerami systemu FIS: SLE (serwerem zleceń) oraz
+  MDS (serwerem danych rynkowych).
+
+  Główne Funkcjonalności:
+
+
+   1. Podwójna, Równoległa Łączność:
+       * Połączenie z Serwerem Zleceń (SLE): Aplikacja potrafi nawiązać i utrzymać stabilne, aktywne połączenie z serwerem SLE. Proces ten obejmuje pełną, wieloetapową autentykację (zgodną ze specyfiką Twojego środowiska) oraz wysłanie wiadomości podtrzymującej sesję (2017), co
+         zapobiega rozłączaniu.
+       * Połączenie z Serwerem Danych Rynkowych (MDS): Niezależnie od połączenia SLE, aplikacja może nawiązać i utrzymać drugie, w pełni funkcjonalne połączenie z serwerem MDS. Proces logowania jest analogiczny do SLE, ale nie wymaga wysyłania dodatkowej wiadomości podtrzymującej.
+         Połączenie jest gotowe do wysyłania żądań o dane.
+
+
+   2. Niezależne Zarządzanie Sesjami:
+       * Każde z połączeń (SLE i MDS) jest w pełni niezależne. Można je nawiązywać i zamykać w dowolnym momencie, bez wpływu na drugie połączenie.
+
+  Architektura i Implementacja Techniczna:
+
+
+   * Wzorzec MVVM: Kod jest logicznie podzielony na:
+       * Model: Dwie dedykowane, stanowe klasy serwisów (FisConnectionService i MdsConnectionService), które hermetyzują całą logikę sieciową dla każdego z serwerów. Zarządzają one cyklem życia obiektu TcpClient, utrzymują połączenie i nasłuchują wiadomości w tle.
+       * ViewModel: MainViewModel stanowi centrum logiki aplikacji. Przechowuje dane logowania i statusy dla obu połączeń, zarządza dwiema instancjami serwisów i udostępnia komendy do interfejsu.
+       * Widok: MainWindow.xaml jest w pełni powiązany z MainViewModel i dynamicznie reaguje na zmiany stanu połączeń.
+
+
+   * Specyfika Protokołu FIS: Aplikacja implementuje specyficzny, wieloetapowy protokół logowania, który został zidentyfikowany w trakcie naszych prac. Obejmuje on:
+       1. Wysłanie 16-bajtowego identyfikatora klienta (FISAPICLIENT).
+       2. Skonstruowanie i wysłanie wiadomości logowania 1100 z precyzyjnym formatem nagłówka (wersja API '0', zamienione node z subnode, stałe źródło 00000).
+       3. Dodanie do ciała wiadomości specyficznych par klucz-wartość wymaganych przez serwer.
+       4. Uruchomienie w tle zadania nasłuchującego, aby utrzymać sesję.
+
+  Interfejs Użytkownika (UI):
+
+
+   * Okno główne zostało podzielone na dwie logiczne sekcje w ramkach (GroupBox), po jednej dla każdego serwera (SLE i MDS).
+   * Każda sekcja zawiera kompletny zestaw pól do konfiguracji połączenia (IP, port, użytkownik, hasło, node, subnode), wstępnie wypełnionych podanymi przez Ciebie danymi.
+   * Każda sekcja posiada własne przyciski "Połącz" i "Rozłącz", które aktywują się i dezaktywują w zależności od stanu danego połączenia.
+   * Na dole okna znajduje się pasek stanu, który w czasie rzeczywistym, niezależnie wyświetla status obu połączeń (np. "SLE Status: Connected", "MDS Status: Disconnected").
+
+  Aktualny Stan i Następne Kroki:
+
+
+  Aplikacja jest w stabilnym stanie, w którym jej podstawowa funkcjonalność – nawiązywanie i utrzymywanie aktywnych sesji z oboma serwerami – została w pełni zrealizowana i przetestowana.
+
+
+  Stanowi to fundament pod dalszy rozwój, czyli implementację logiki do:
+   1. Wysyłania żądań o dane rynkowe (np. o listę instrumentów za pomocą wiadomości 5108) do serwera MDS.
+   2. Przetwarzania i wyświetlania otrzymanych danych.
+   3. Wykorzystania tych danych do konstruowania i wysyłania zleceń przez aktywne połączenie z serwerem SLE.
