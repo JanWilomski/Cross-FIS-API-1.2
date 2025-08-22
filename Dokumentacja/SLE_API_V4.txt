@@ -1,0 +1,1871 @@
+Orders Sending API SLE V4
+
+Description of the GL SLE API V4
+
+1
+
+Orders Sending API SLE V4
+
+© GL TRADE SA, 2004
+All intellectual property rights in the documentation, the trademark, the logo are and shall remain vested in GL
+TRADE, and are protected by the applicable relevant legislation.
+Consequently, this documentation, trademark and logo shall not:
+o
+
+be copied or represented in whole or in part by any medium, by any means of any kind, except for the
+user’s personal use.
+
+o
+
+be altered or modified under any form of any kind, by any manner of any kind.
+
+Any infringement to these provisions shall be punished in accordance with the relevant legislation and GL
+TRADE reserves the right to claim all related damages.
+
+2
+
+Orders Sending API SLE V4
+
+Versions
+Version
+
+1.0
+
+Date
+
+12 october 2001
+
+Author
+
+FOR
+
+Object
+
+Creation
+
+Version
+
+1.1
+
+Date
+
+30 July 2001
+
+Author
+
+FOR
+
+Object
+
+Updating of the field Reason (request 1102)
+
+Version
+
+1.2
+
+Date
+
+27 November 2001
+
+Author
+
+FOR
+
+Object
+
+Add some informations about the requests
+
+Version
+
+1.3
+
+Date
+
+September 22 2003
+
+Author
+
+FOR
+
+Object
+
+Add a new fields into the requets 2017 and 2008
+“Reply type” and “Reply inflected message”
+
+Version
+
+1.4
+
+Date
+
+March 08 2004
+
+Author
+
+Sabria BENHAMIDA
+
+Object
+
+Addition of the new value ‘L’ : “Inflected message” to the field (D) “Reply type”
+
+Version
+
+1.5
+
+Date
+
+March 09 2004
+
+Author
+
+Sabria BENHAMIDA
+
+Object
+
+Addition of the new fields about the connection request (1100-1102) for the SLE V5 >=5.5
+
+Version
+
+1.6
+
+Date
+
+March 11 2004
+
+3
+
+Orders Sending API SLE V4
+
+Author
+
+FOR
+
+Object
+
+Update the 2017 request
+
+Version
+
+1.7
+
+Date
+
+March 23 2004
+
+Author
+
+FOR
+
+Object
+
+Update the 2008 request
+
+Version
+
+1.8
+
+Date
+
+December 12 2004
+
+Author
+
+FOR
+
+Object
+
+Add the reason “API licence”
+
+Version
+
+1.9
+
+Date
+
+May 30 2005
+
+Author
+
+Sabria BENHAMIDA
+
+Object
+
+Since the version SLE V5.10, the Tag 22 was added to give the “server version” in the reply to
+the connection request 1100.
+
+Version
+
+1.10
+
+Date
+
+June 1st 2005
+
+Author
+
+Benoît Moreau
+
+Object
+
+Precisions added regarding version number format in tag 22 for the 1100 message.
+
+Version
+
+1.12
+
+Date
+
+April 19 2006
+
+Author
+
+NCO
+
+Object
+
+Update the 2044 request.
+
+4
+
+Orders Sending API SLE V4
+
+Contents
+VERSIONS
+
+3
+
+CONTENTS
+
+5
+
+HOW IS THIS DOCUMENT ORGANISED
+
+7
+
+ENCODING TYPE
+
+8
+
+GL CODING RULE................................................................................................... 8
+MESSAGE FORMAT
+
+9
+
+MESSAGE STRUCTURE ............................................................................................ 9
+LG 9
+HEADER ................................................................................................................ 9
+DATA ................................................................................................................... 10
+FOOTER ............................................................................................................... 10
+LOGICAL CONNECTION 1100................................................................................ 11
+Using
+11
+Format
+11
+Codage
+11
+Question
+11
+Reply
+11
+Domain Value
+11
+LOGICAL DECONNECTION 1102 ............................................................................ 13
+Using
+13
+Format
+13
+Question
+13
+Domain Value
+13
+ORDER MANAGEMENT 2000 ................................................................................. 14
+Description
+14
+Using
+14
+Format
+14
+REAL TIME MESSAGES 2017 .................................................................................. 15
+Description
+15
+Using
+15
+Format
+15
+UNSUBSCRIBE REQUEST 2018............................................................................... 16
+Using
+16
+Format
+16
+SIMPLE ORDER REAL TIME MESSAGE 2019............................................................. 17
+Using
+17
+
+5
+
+Orders Sending API SLE V4
+
+Format
+
+17
+
+ORDER BOOK CONSULTATION 2004 ...................................................................... 18
+Description
+18
+Using
+18
+Format
+18
+REPLY CONSULTATION 2008................................................................................. 19
+Description
+19
+Using
+19
+Format
+19
+PRICE PUBLICITY 2032......................................................................................... 21
+Using
+21
+Format
+21
+GROUPED ORDERS 2040...................................................................................... 22
+Using
+22
+Format
+22
+GROUPED ORDERS CONSULTATION 2044 ............................................................. 23
+Using
+23
+Format
+23
+
+DATA USED IN REQUEST
+
+24
+
+DATA USED AND DOMAIN VALUES
+
+29
+
+6
+
+Orders Sending API SLE V4
+
+How is this document organised
+This document is made up of four sections.
+
+
+
+The first section examines the types of variables that can fill these fields.
+
+
+
+The second section explores the message format. It decribes the cinematic and the
+format of each requests.
+
+
+
+The third section describes data used in the message format.
+
+
+
+The fourth give the path to know the data and values used in the bitmap.
+
+7
+
+Orders Sending API SLE V4
+
+Encoding type
+In GL API messages variables can take one of the five following forms:
+
+GL coding rule
+
+
+GL Format
+
+In GL format, the first byte indicates the length of the field.
+The length is calculated as following :
+Contains the value + 32 in ASCII
+E.g length = 7
+First byte = 7 + 32 = 39 = « ‘ »
+
+The rest is the contents of the field coded in ASCII.
+E.g value = FTE
+First byte = 3 + 32 = 35 = « # »
+Rest = « FTE »
+So the field = « #FTE »
+
+Warning : This format imply that all the fields have a variable length.
+
+
+
+ACSII
+
+:
+
+Data field in ASCII format.
+E.g.
+
+02007 coded « 02007 »
+
+
+
+Filler
+
+:
+
+Field only contains spaces : ASCII char(32).
+
+
+
+GL_C
+
+:
+
+Fixed length coded aver one byte.
+Contains the value + 32
+E.g.
+
+value = 7
+Field = 7+32=39= « ’ »
+
+8
+
+Orders Sending API SLE V4
+
+Message Format
+Message Structure
+A GL message is a string of variable length in ASCII 8-bit format that must adhere to the
+following format :
+LG
+
+HEADER
+
+DATA
+
+FOOTER
+
+Where :
+
+
+
+LG
+
+: Total message length (including LG, Header, Data, Footer)
+
+
+
+Header : General message information
+
+
+
+Data
+
+
+
+Footer : End of message
+
+: Message data
+
+LG
+The LG section gives the total length of the message.
+It is coded over 2 bytes : LG[0] and LG[1], where :
+
+
+
+LG[0]
+
+: LG%256 (remainder of LG/256)
+
+
+
+LG[1]
+
+: LG/256 (integer part of LG/256)
+
+
+
+LG = LG[0] + 256 * LG[1]
+
+Header
+The header is of a standard fixed length of 32 bytes.
+
+Remark : The format of the header is the same for SLC V4, SLC V5, SLE V4, SLE V5.
+Only the field API version changes.
+For SLE V4, this field must be filled with « »
+
+9
+
+Orders Sending API SLE V4
+
+Type
+
+Width
+
+Field
+
+BINARY
+ASCII
+
+1
+1
+
+ASCII
+ASCII
+FILLER
+ASCII
+FILLER
+ASCII
+FILLER
+
+5
+5
+5
+5
+2
+5
+3
+
+STX = 2
+API version
+« » for SLE V4
+Request size
+Called logical identifier
+Filler
+Calling Logical identifier
+Filler
+Request Number
+Filler
+
+Data
+All the request present here can be composed of two types of data.
+
+
+Data used for the formatage of the request. These data are generic and are always
+present. They form the skeleton of the requests.
+These data are describe in the section « Data used in request »
+
+
+
+Data used to send orders and in the reply from the exchanges.
+To know these datas see the section : «Data used and domain values ».
+
+Footer
+The footer is of a fixed length of 3 bytes and indicates the end of the message. It only
+contains fillers and binary fiels.
+Remark : The format of the footer is the same for SLC V4, SLC V5, SLE V4, SLE V5.
+
+Type
+
+width
+
+Field
+
+FILLER
+BINARY
+
+2
+1
+
+Filler
+ETX = 3
+
+10
+
+Orders Sending API SLE V4
+
+Logical Connection 1100
+Using
+Mechanism of logical Connection.
+
+Connection accepted
+
+1100
+Client
+
+Server
+1100
+
+Connection Refused
+1100
+Client
+
+Server
+1102
+
+Format
+Position
+
+Name
+
+0
+1
+
+User Number
+Password
+Filler
+
+Type
+
+Codage Max length Repetition
+
+Question
+INT
+CHAR
+Filler
+
+ASCII
+ASCII
+ASCII
+
+3
+16
+1
+
+ASCII
+ASCII
+GL_C
+
+3
+16
+1
+
+Reply
+0
+1
+2
+
+User Number
+Password
+Filler
+
+INT
+CHAR
+Filler
+
+More fields in the reply since SLE V5 >= 5.5
+Key *
+Value *
+
+NUM
+CHAR
+
+GL
+GL
+
+X According
+X to the length
+
+* The couple (Key, Value) is present three times in the reply of the request 1100.
+
+Domain Value
+Tag
+
+Value
+
+1
+7
+22
+
+Description of the couple values
+0 : that means user configuration changes are not implemented
+'YYYYMMDDHHMMSS' : Date format for the validity of the password
+Server version. Each GL TRADE software product bears a version number
+
+11
+
+Orders Sending API SLE V4
+
+defined as follows: A.B.C-D, for example 5.12.1-1 in which:
+- A: is the generation of the product. This corresponds to the general
+architecture of the GL software products.
+- B: is the "major" version number corresponding to the GL databases used
+(when there is database).
+- C: is the evolution number (for functional changes).
+- D: is the evolution number for patches.
+
+12
+
+Orders Sending API SLE V4
+
+Logical deconnection 1102
+Using
+Mechanism of logical deconnection.
+
+Volontary deconnection :
+1102
+Client
+
+Server
+
+Unvolontary deconnection
+
+Client
+
+Server
+
+1102
+
+Format
+Position
+
+Name
+
+Type
+
+Codage
+
+Max length
+
+Question
+0 User Number
+1 Password
+Filler
+
+INT
+CHAR
+Filler
+
+ASCII
+ASCII
+ASCII
+
+3
+16
+1
+
+ASCII
+ASCII
+GL_C
+
+3
+16
+1
+
+Reply
+0 User Number
+1 Password
+2 Reason
+
+INT
+CHAR
+INT
+
+More fields in the reply since SLE V5 >= 5.5
+Reject description
+Key
+Value
+0
+
+CHAR
+NUM
+CHAR
+
+GL
+GL
+GL
+
+X
+According to
+the length
+
+The couple (Key, Value) is present two times in the reply of the request 1102.
+
+Domain Value
+Tag
+
+Value
+
+1
+7
+
+Description of the couple values
+0 : that means user configuration changes are not implemented
+‘YYYYMMDDHHMMSS’ : Date format for the validity of the password
+
+13
+
+Orders Sending API SLE V4
+
+Order management 2000
+Description
+This request allows to send basic orders, to modify or cancel them.
+
+Using
+Mechanism to send an order management
+
+Client
+
+Server
+
+2000
+2019
+2019
+
+SLE sends back n requests 2019 which corresponds to number of orders sent in request
+2000.
+
+Format
+Position
+
+Name
+
+Type
+Question
+
+B User Number
+C Request Category
+D1 Command
+G Stockcode
+Filler
+Data for order
+
+INT
+CHAR
+INT
+CHAR
+FILLER
+INT/CHAR
+
+Codage Max length
+ASCII
+ASCII
+ASCII
+GL
+FILLER
+GL
+
+5
+1
+1
+X
+10
+X
+
+To know the data of order, see the section : «Data used and domain values ».
+
+The format of the request 2000 and 2000 OTC is the same. The difference is inside the
+bitmap.
+
+14
+
+Orders Sending API SLE V4
+
+Real time messages 2017
+Description
+Before sending orders to an exchange, it’s better to first check that all types of messages
+can be received. To do this, the 2017 request allows the client to obtain them in
+asynchronous mode.
+This request in from client to server only, and is mandatory to receive SLE unsolicited
+messages sent in 2019 requests.
+
+Using
+Mechanism of subcription.
+
+2017
+Client
+
+Server
+
+The request allows to receive request 2019.
+
+Format
+Position
+
+Name
+
+Type
+
+Codage
+
+Max length
+
+Question
+E1 Reply acknowledgement
+E2 Reply reject
+E3 Reply exchange reject
+E4 Reply trade execution
+E5 Reply exchange message
+E6 Default reply type
+E7 Reply inflected message
+Filler
+
+15
+
+INT
+INT
+INT
+INT
+INT
+INT
+INT
+FILLER
+
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+FILLER
+
+1
+1
+1
+1
+1
+1
+1
+11
+
+Orders Sending API SLE V4
+
+Unsubscribe request 2018
+Using
+Mechanism of Unsubscription
+
+2018
+Client
+
+Server
+
+This request stop the send of requests 2019.
+
+Format
+Position
+
+Name
+Filler
+
+16
+
+Type
+Question
+
+Codage
+
+FILLER
+
+FILLER
+
+Max length
+18
+
+Orders Sending API SLE V4
+
+Simple order real time message 2019
+Using
+This request is only in reply.
+
+Client
+
+Server
+
+2019
+2019
+2019
+
+Format
+Position
+
+Name
+
+Type
+
+Codage
+
+Max length
+
+Reply
+A Chaining
+B User number
+C Request category
+D Reply type
+E Index
+F Number of replies
+G Stockcode
+Filler
+Data for order
+
+INT
+INT
+CHAR
+CHAR
+INT
+INT
+CHAR
+FILLER
+INT/CHAR
+
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+GL
+FILLER
+GL
+
+To know the data of order, see the section : «Data used and domain values ».
+
+17
+
+1
+5
+1
+1
+6
+5
+X
+10
+X
+
+Orders Sending API SLE V4
+
+Order book consultation 2004
+Description
+The 2004 request, when sent from the client to the SLE, asks the SLE for a snapshot
+of all orders sent on the market and their status.
+
+Using
+Mechanism of order book consultation.
+2004
+
+Client
+
+Server
+
+2004
+
+Format
+Number
+
+Name
+
+Type
+
+Codage
+
+Max Length
+
+ASCII
+ASCII
+ASCII
+FILLER
+GL
+ASCII
+ASCII
+FILLER
+
+5
+1
+1
+7
+X
+6
+5
+20
+
+ASCII
+ASCII
+ASCII
+FILLER
+ASCII
+ASCII
+GL
+FILLER
+GL
+
+1
+5
+1
+1
+6
+5
+X
+10
+X
+
+Question
+B User number
+C Request category
+D2 Question
+Filler
+G Stockcode
+E Index
+F Number of replies
+Filler
+
+INT
+CHAR
+CHAR
+FILLER
+CHAR
+INT
+INT
+FILLER
+
+Reply
+A Chaining
+B User Number
+C Request category
+Filler
+E Index
+F Number of replies
+G Stockcode
+Filler
+Data for order
+
+INT
+INT
+CHAR
+FILLER
+INT
+INT
+CHAR
+FILLER
+INT/CHAR
+
+18
+
+Orders Sending API SLE V4
+
+Reply consultation 2008
+Description
+The 2008 request, when sent from the client to the SLE, asks the SLE for a snapshot
+with the corresponding messages sent by the SLE for the client orders.
+
+Using
+Mechanism of reply consultation.
+2008
+
+Client
+
+Server
+
+2008
+
+Format
+Number
+
+Name
+
+Type
+
+Codage Max length
+
+Question
+B User number
+C Request category
+D2 Question
+E1 Reply acknowledgement
+E2 Reply reject
+E3 Reply exchange reject
+E4 Reply trade execution
+E5 Reply exchange message
+E6 Default reply type
+E7 Reply inflected message
+G Stockcode
+E Index
+F Number of replies
+Filler
+
+INT
+CHAR
+CHAR
+INT
+INT
+INT
+INT
+INT
+INT
+INT
+CHAR
+INT
+INT
+FILLER
+
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+GL
+ASCII
+ASCII
+FILLER
+
+5
+1
+1
+1
+1
+1
+1
+1
+1
+1
+X
+6
+5
+20
+
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+GL
+
+1
+5
+1
+1
+6
+5
+X
+
+Reply
+A Chaining
+B User Number
+C Request category
+D Reply type
+E Index
+F Number of replies
+G Stockcode
+
+INT
+INT
+CHAR
+CHAR
+INT
+INT
+CHAR
+19
+
+Orders Sending API SLE V4
+
+Filler
+Data for order
+
+FILLER
+INT/CHAR
+
+FILLER
+GL
+
+10
+X
+
+To know the data for order, see the section : «Data used and domain values ».
+
+20
+
+Orders Sending API SLE V4
+
+Price publicity 2032
+Using
+Mechanism to send an order management
+
+Client
+
+Server
+
+2032
+2019
+2019
+
+Format
+Position
+
+Name
+
+Type
+Question
+
+B User Number
+C Request Category
+D1 Command
+G Stockcode
+Filler
+Data for order
+
+INT
+CHAR
+INT
+CHAR
+FILLER
+INT/CHAR
+
+Codage Max length
+ASCII
+ASCII
+ASCII
+GL
+FILLER
+GL
+
+5
+1
+1
+X
+10
+X
+
+To know the data of order, see the section : «Data used and domain values ».
+
+21
+
+Orders Sending API SLE V4
+
+Grouped Orders 2040
+Using
+Mechanism of groupes orders.
+2040
+
+Client
+
+Server
+
+2019
+2019
+2019
+
+Format
+Position
+
+Name
+
+Type Codage Max length Repetition
+Question
+
+M Message type
+G Default Stockcode
+N1 Number of default data fields
+Filler
+Default data for order
+N2 Number of order
+
+CHAR
+CHAR
+INT
+FILLER
+INT/CHAR
+INT
+
+ASCII
+GL
+ASCII
+FILLER
+GL
+ASCII
+
+1
+X
+5
+5
+X
+3
+
+L Length of order
+B User number
+C Request category
+D1 Command
+G Stockcode
+N1 Number of data fields
+Filler
+Data for order
+
+INT
+INT
+CHAR
+INT
+CHAR
+INT
+FILLER
+CHAR
+
+ASCII
+ASCII
+ASCII
+ASCII
+GL
+ASCII
+FILLER
+GL
+
+5
+5
+1
+1 "Number of
+X order" times
+5
+5
+X
+
+To know the data for order, see the section : «Data used and domain values ».
+
+22
+
+Orders Sending API SLE V4
+
+Grouped Orders Consultation 2044
+Using
+
+2044
+
+Client
+
+Server
+
+2044
+9
+
+Format
+Position
+
+Name
+
+Type Codage Max length Repetition
+Question
+
+M Message type
+D2 Question
+E Index
+F Number of replies
+N2 Number of orders
+B User number
+C Request category
+G Stockcode
+Filler
+
+CHAR
+CHAR
+INT
+INT
+INT
+INT
+CHAR
+CHAR
+FILLER
+
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+ASCII
+GL
+FILLER
+
+1
+1
+6
+5
+5
+5
+1
+X
+10
+
+Reply
+M Message type
+A Chaining
+E Index
+F Number of replies
+G Stockcode
+N1 Number of data fields
+Filler
+Data for order
+N2 Number of order
+
+CHAR
+CHAR
+INT
+INT
+CHAR
+INT
+FILLER
+CHAR
+INT
+
+ASCII
+ASCII
+ASCII
+ASCII
+GL
+ASCII
+FILLER
+GL
+ASCII
+
+1
+1
+6
+5
+X
+5
+5
+X
+5
+
+B User number
+C Request category
+D1 Command
+G Stockcode
+N1 Number of data fields
+Filler
+Data for order
+
+INT
+CHAR
+INT
+CHAR
+INT
+FILLER
+CHAR
+
+ASCII
+ASCII
+ASCII
+GL
+ASCII
+FILLER
+GL
+
+5
+1
+1
+X "Number of
+order" times
+5
+5
+X
+
+To know the data for order, see the section : «Data used and domain values ».
+23
+
+Orders Sending API SLE V4
+
+Data used in request
+0/B
+User Number
+This field indicates the GL user number which identifie the user
+User Number into [0-9999]
+For the request connection/disconnection, User Number is into
+[0-999]
+
+1
+
+2
+
+Password
+This field is used to authentify access
+
+Reason
+This field indicates the reason for the refusal and respects
+following modulo rules.
+
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+
+Incorrect password
+No more space in logical connection database
+Incorrect format of logical connection request
+Forbidden user number
+Unknown user number
+Forbidden brooker number
+Unknown brooker number
+User already connected
+Connection trouble
+Unknown receiver
+
+Reason can be equal to
+<10
+>=
+10
+and
+<20
+>=20
+and
+<30
+>=30
+and
+<40
+>=40
+and
+<50
+
+Message from P3
+Message from SLE
+
+Message from SLC
+
+Message from GL Net
+
+Message from Selector
+
+24
+
+Orders Sending API SLE V4
+
+For the SLE V5, other reasons exist. These reasons are between
+[100-110]
+100
+101
+102
+103
+104
+105
+106
+107
+111
+
+C
+A
+C
+D
+F
+O
+S
+
+D1
+0
+1
+2
+4
+5
+6
+8
+A
+
+Password expired
+New password rejected : used to recently
+New password rejected : too short
+New password rejected : identical to the user
+New password rejected : should contain at least one digit
+and one letter
+New password rejected : more than 3 successive identical
+characters
+Sender is not allowed to modify this password
+Max number of attempts reached
+No API licence
+
+Request category
+This field indicates the order type
+Trade Out The counter
+Combined order
+Price request
+Market maker
+Single order
+Care Order
+
+Command
+This field gives the type of the command
+New order
+Cancel order
+Update order
+Cancel execution
+Overall cancel
+Release order
+M.I.T
+Overall cancel order
+
+G
+
+Stockcode
+This field indicates the instrument
+
+E1
+
+Reply acknoledgement
+Subscription of acknowledgement
+No
+Yes
+
+0
+1
+
+25
+
+Orders Sending API SLE V4
+
+E2
+
+Reply reject
+
+0
+1
+
+No
+Yes
+
+E3
+
+Reply exchange reject
+Subscription of exchange reject
+No
+Yes
+
+Subscription of reject
+
+0
+1
+
+E4
+0
+1
+
+E5
+0
+1
+
+Reply trade execution
+Subscription of trade execution
+No
+Yes
+
+Reply exchange message
+Subscription of exchange message
+No
+Yes
+
+E6
+
+Default reply type
+Always filled with “0”
+
+E7
+
+Reply inflected messages
+Subscription of inflected message
+No
+Yes
+
+0
+1
+
+A
+0
+1
+
+D
+A
+C
+G
+
+Chaining
+This field indicates if the response is the last one
+Last one
+Otherwise
+
+Reply type
+This field indicates the reply type
+Exchange acknoledgement
+Exchange reject
+GL reject
+26
+
+Orders Sending API SLE V4
+
+R
+J
+L
+
+E
+
+Trade execution
+Exchange message number
+Inflected message
+
+Index
+This field indicates the index of the response in the SLE
+Database
+
+F
+
+Number of replies
+This field indicates the number of replies
+
+D2
+
+Question
+This field descibes the type of consultation
+N responses starting from index (index included)
+N responses starting from the beginning
+N responses before the index
+N responses after the index
+Last response
+
+1
+2
+3
+4
+6
+
+M
+Q
+O
+L
+C
+X
+
+Message type
+This field indicates the type of order created
+Quote
+Simple order
+Linked order
+Combined order
+Cross order
+
+N1
+
+Number of default data fields
+This field indicates the number of the last field coded
+
+N2
+
+Number of order
+This field indicates the number of order
+
+L
+
+Length of order
+This field indicates the length of the order
+
+27
+
+Orders Sending API SLE V4
+
+28
+
+Orders Sending API SLE V4
+
+Data used and domain values
+The GL API SLE V4 used different data and domain values according to the
+exchange.
+So, when you want to trade, you must have the good bitmap.
+
+These bitmaps are available on the site web GLTRADE.NET, www.gltrade.net , or you
+can ask it at your account manager.
+
+29
+
+
